@@ -102,6 +102,22 @@ set foldmethod=indent
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
 let g:ycm_confirm_extra_conf = 0
+let g:ycm_min_num_identifier_candidate_chars = 5
+let g:ycm_error_symbol = 'E'
+let g:ycm_warning_symbol = 'W'
+let g:ycm_seed_identifiers_with_syntax = 1
+let g:ycm_autoclose_preview_window_after_insertion = 1
+let g:ycm_max_diagnostics_to_display = 10
+let g:ycm_key_invoke_completion = '<C-S-Space>'
+let g:ycm_key_detailed_diagnostics = 'gdd'
+let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
+
+nnoremap <F2> :set number!<CR>
+
+autocmd BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \   exe "normal g`\"" |
+                \ endif
