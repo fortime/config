@@ -59,3 +59,10 @@ PROMPT=$'\n${USER_PROMPT}@${HOST_PROMPT} on ${TTY_PROMPT} in $(collapse_pwd) $(g
 RPROMPT=$'${RETCODE_PROMPT}'
 
 #export PROMPT=$'\n$(rb_prompt)in $(directory_name) $(git_dirty)$(need_push)\n› '
+
+if [ "$SSH_CONNECTION" != '' -a "$TERM" != 'linux' ]; then
+    declare -a HOSTIP
+    HOSTIP=`echo $SSH_CONNECTION |awk '{print $3}'`
+    precmd () {print -Pn "\033]0;$HOSTIP:${PWD/#$HOME/~} \007"}
+fi
+
