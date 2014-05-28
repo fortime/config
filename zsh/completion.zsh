@@ -19,3 +19,4 @@ zstyle ':completion:*:kill:*' force-list always
 # cd not select parent dir
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
 
+zstyle ':completion:*' menu select=5
