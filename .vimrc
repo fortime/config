@@ -3,47 +3,37 @@ set nocompatible               " be iMproved
 filetype off                   " required!
 call vundle#rc()
 
-"Bundle
-"For vim plugins management
+" Bundle
+" For vim plugins management
 Bundle 'gmarik/vundle'
-"For smart completion
+" For smart completion
 Bundle 'Valloric/YouCompleteMe'
-"For ycm listing diagnostic message
+" For ycm listing diagnostic message
 Bundle 'Valloric/ListToggle'
-"For syntax diagnosting
+" For syntax diagnosting
 Bundle 'scrooloose/syntastic'
-"For auto completion for quotes, parens, brackets
+" For auto completion for quotes, parens, brackets
 Bundle 'Raimondi/delimitMate'
-"For git integration
+" For git integration
 Bundle 'tpope/vim-fugitive'
-"For exploring filesystem
+" For exploring filesystem
 Bundle 'scrooloose/nerdtree'
-"For tag navigation
+" For tag navigation
 Bundle 'majutsushi/tagbar'
-"For toggling nerdtree and tagbar 
+" For toggling nerdtree and tagbar 
 Bundle 'fortime/ntatb'
-"For systemd syntax
+" For systemd syntax
 Bundle 'Matt-Stevens/vim-systemd-syntax'
-"For colorscheme
+" For colorscheme
 Bundle 'rainbow.zip'
-"For css syntax bugs fix
+" For css syntax bugs fix
 Bundle 'hail2u/vim-css-syntax'
-"For css3 syntax
+" For css3 syntax
 Bundle 'hail2u/vim-css3-syntax'
-
-"ListToggle
-let g:lt_location_list_toggle_map = '<leader>l'
-let g:lt_quickfix_list_toggle_map = '<leader>q'
-
-"NERD Tree
-let NERDTreeWinPos=1
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
-
-"Tagbar
-map <silent> <F8> :NtatbToggleAll<cr> 
-map <silent> <F9> :NtatbToggleTagbar<cr> 
-map <silent> <F10> :NtatbToggleNERDTree<cr> 
-
+" For cpp enhanced syntax highlight
+"Bundle 'octol/vim-cpp-enhanced-highlight'
+" For cpp enhanced syntax highlight using libclang
+Bundle 'bbchung/clighter'
 
 colorscheme neon
 highlight Folded ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40f0f0 guibg=#006090
@@ -101,6 +91,18 @@ set foldenable
 set foldmethod=indent
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
+" KeyMap {{{
+nnoremap <F2> :set number!<CR>
+" }}}
+
+" Autocmd {{{
+autocmd BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \   exe "normal g`\"" |
+                \ endif
+" }}}
+
+" YouCompleteMe {{{
 let g:ycm_confirm_extra_conf = 0
 let g:ycm_min_num_identifier_candidate_chars = 5
 let g:ycm_error_symbol = 'E'
@@ -114,10 +116,21 @@ let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
+nnoremap gsf :YcmCompleter GoToDefinition h<CR>
+nnoremap gsc :YcmCompleter GoToDeclaration h<CR>
+" }}}
 
-nnoremap <F2> :set number!<CR>
+" NERDTree {{{
+let g:NERDTreeWinSize = 20
+let NERDTreeWinPos=1
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+" }}}
 
-autocmd BufReadPost *
-                \ if line("'\"") > 0 && line("'\"") <= line("$") |
-                \   exe "normal g`\"" |
-                \ endif
+" Tagbar {{{
+let g:tagbar_width = 20
+let g:tagbar_left = 1
+
+map <silent> <F8> :NtatbToggleAll<cr> 
+map <silent> <F9> :NtatbToggleTagbar<cr> 
+map <silent> <F10> :NtatbToggleNERDTree<cr> 
+" }}}
