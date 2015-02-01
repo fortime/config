@@ -91,6 +91,11 @@ set foldenable
 set foldmethod=indent
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
+autocmd BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \   exe "normal g`\"" |
+                \ endif
+
 " KeyMap {{{
 nnoremap <F2> :set number!<CR>
 " }}}
@@ -133,4 +138,47 @@ let g:tagbar_left = 1
 map <silent> <F8> :NtatbToggleAll<cr> 
 map <silent> <F9> :NtatbToggleTagbar<cr> 
 map <silent> <F10> :NtatbToggleNERDTree<cr> 
+" }}}
+
+" OpenCppFileForCurrentHeader {{{
+autocmd bufenter *.h,*.hpp nnoremap gcc :call OpenCppFileForCurrentHeader()<CR>
+function! OpenCppFileForCurrentHeader()
+    let extension = expand("%:e")
+    if extension != "h" && extension != "hpp"
+        return
+    endif
+    let target = expand("%<:p").".cpp"
+    echo target
+    if (filereadable(target))
+        exec ":sp ". target
+        return
+    endif
+    let target = expand("%<:p").".cc"
+    echo target
+    if (filereadable(target))
+        exec ":sp ". target
+        return
+    endif
+endfunction
+" }}}
+" OpenHeaderFileForCurrentSource {{{
+autocmd bufenter *.cc,*.cpp nnoremap gch :call OpenHeaderFileForCurrentSource()<CR>
+function! OpenHeaderFileForCurrentSource()
+    let extension = expand("%:e")
+    if extension != "cc" && extension != "cpp"
+        return
+    endif
+    let target = expand("%<:p").".h"
+    echo target
+    if (filereadable(target))
+        exec ":sp ". target
+        return
+    endif
+    let target = expand("%<:p").".hpp"
+    echo target
+    if (filereadable(target))
+        exec ":sp ". target
+        return
+    endif
+endfunction
 " }}}
