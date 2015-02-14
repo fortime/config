@@ -2,39 +2,45 @@
 set nocompatible               " be iMproved
 filetype off                   " required!
 set rtp+=~/.vim/bundle/vundle
-call vundle#rc()
+call vundle#begin()
 
 " Bundle
 " For vim plugins management
-Bundle 'gmarik/vundle'
+Plugin 'gmarik/vundle'
 " For smart completion
-Bundle 'Valloric/YouCompleteMe'
+Plugin 'Valloric/YouCompleteMe'
 " For ycm listing diagnostic message
-Bundle 'Valloric/ListToggle'
+Plugin 'Valloric/ListToggle'
 " For syntax diagnosting
-Bundle 'scrooloose/syntastic'
+Plugin 'scrooloose/syntastic'
 " For auto completion for quotes, parens, brackets
-Bundle 'Raimondi/delimitMate'
+Plugin 'Raimondi/delimitMate'
 " For git integration
-Bundle 'tpope/vim-fugitive'
+Plugin 'tpope/vim-fugitive'
 " For exploring filesystem
-Bundle 'scrooloose/nerdtree'
+Plugin 'scrooloose/nerdtree'
 " For tag navigation
-Bundle 'majutsushi/tagbar'
+Plugin 'majutsushi/tagbar'
 " For toggling nerdtree and tagbar 
-Bundle 'fortime/ntatb'
+Plugin 'fortime/ntatb'
 " For systemd syntax
-Bundle 'Matt-Stevens/vim-systemd-syntax'
+Plugin 'Matt-Stevens/vim-systemd-syntax'
 " For colorscheme
-Bundle 'rainbow.zip'
+Plugin 'rainbow.zip'
 " For css syntax bugs fix
-Bundle 'hail2u/vim-css-syntax'
+Plugin 'hail2u/vim-css-syntax'
 " For css3 syntax
-Bundle 'hail2u/vim-css3-syntax'
+Plugin 'hail2u/vim-css3-syntax'
 " For cpp enhanced syntax highlight
-"Bundle 'octol/vim-cpp-enhanced-highlight'
+"Plugin 'octol/vim-cpp-enhanced-highlight'
 " For cpp enhanced syntax highlight using libclang
-Bundle 'bbchung/clighter'
+Plugin 'bbchung/clighter'
+" Snip
+Plugin 'SirVer/ultisnips'
+" Snippets
+Plugin 'honza/vim-snippets'
+
+call vundle#end()
 
 colorscheme neon
 highlight Folded ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40f0f0 guibg=#006090
@@ -92,16 +98,11 @@ set foldenable
 set foldmethod=indent
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
-autocmd BufReadPost *
-                \ if line("'\"") > 0 && line("'\"") <= line("$") |
-                \   exe "normal g`\"" |
-                \ endif
-
 " KeyMap {{{
 nnoremap <F2> :set number!<CR>
 " }}}
 
-" Autocmd {{{
+" JumpToTheLineLastOpen {{{
 autocmd BufReadPost *
                 \ if line("'\"") > 0 && line("'\"") <= line("$") |
                 \   exe "normal g`\"" |
@@ -119,6 +120,8 @@ let g:ycm_max_diagnostics_to_display = 10
 let g:ycm_key_invoke_completion = '<C-S-Space>'
 let g:ycm_key_detailed_diagnostics = 'gdd'
 let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
+let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
@@ -141,38 +144,54 @@ map <silent> <F9> :NtatbToggleTagbar<cr>
 map <silent> <F10> :NtatbToggleNERDTree<cr> 
 " }}}
 
-" OpenCppFileForCurrentHeader {{{
-autocmd bufenter *.h,*.hpp nnoremap gcc :call OpenCppFileForCurrentHeader()<CR>
-function! OpenCppFileForCurrentHeader()
+" Ultisnip {{{
+let g:UltiSnipsExpandTrigger = "<tab>"
+let g:UltiSnipsJumpForwardTrigger = "<tab>"
+let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+" }}}
+
+" OpenCOrCppFileForCurrentHeader {{{
+autocmd bufenter *.h,*.hpp nnoremap gcc :call OpenCOrCppFileForCurrentHeader()<CR>
+function! OpenCOrCppFileForCurrentHeader()
     let extension = expand("%:e")
-    if extension != "h" && extension != "hpp"
-        return
+    if extension == "h"
+        let target = expand("%<:p").".c"
+        echo target
+        if (filereadable(target))
+            exec ":sp ". target
+            return
+        endif
     endif
-    let target = expand("%<:p").".cpp"
-    echo target
-    if (filereadable(target))
-        exec ":sp ". target
-        return
-    endif
-    let target = expand("%<:p").".cc"
-    echo target
-    if (filereadable(target))
-        exec ":sp ". target
-        return
+    if extension == "hpp" || extension == "h"
+        let target = expand("%<:p").".cpp"
+        echo target
+        if (filereadable(target))
+            exec ":sp ". target
+            return
+        endif
+        let target = expand("%<:p").".cc"
+        echo target
+        if (filereadable(target))
+            exec ":sp ". target
+            return
+        endif
     endif
 endfunction
 " }}}
 " OpenHeaderFileForCurrentSource {{{
-autocmd bufenter *.cc,*.cpp nnoremap gch :call OpenHeaderFileForCurrentSource()<CR>
+autocmd bufenter *.cc,*.cpp,*.c nnoremap gch :call OpenHeaderFileForCurrentSource()<CR>
 function! OpenHeaderFileForCurrentSource()
     let extension = expand("%:e")
-    if extension != "cc" && extension != "cpp"
+    if extension != "cc" && extension != "cpp" && extension != "c"
         return
     endif
     let target = expand("%<:p").".h"
     echo target
     if (filereadable(target))
         exec ":sp ". target
+        return
+    endif
+    if extension != "cc" && extension != "cpp"
         return
     endif
     let target = expand("%<:p").".hpp"
