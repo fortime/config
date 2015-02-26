@@ -8,7 +8,7 @@ call vundle#begin()
 " For vim plugins management
 Plugin 'gmarik/vundle'
 " For smart completion
-Plugin 'Valloric/YouCompleteMe'
+Plugin 'fortime/YouCompleteMe'
 " For ycm listing diagnostic message
 Plugin 'Valloric/ListToggle'
 " For syntax diagnosting
