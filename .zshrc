@@ -8,14 +8,7 @@ VBOX_USB=usbfs
 # Vars used later on by Zsh
 export EDITOR=vim
 export BROWSER=firefox
-export LIBVA_DRIVER_NAME=vdpau
-export VDPAU_DRIVER=r600
 #export XTERM="aterm +sb -geometry 80x29 -fg black -bg lightgoldenrodyellow -fn -xos4-terminus-medium-*-normal-*-14-*-*-*-*-*-iso8859-15"
-
-# Vars used by building android
-export USE_CCACHE=1
-export CCACHE_DIR=/media/Documents/android/.ccache
-export PATH=~/bin:$PATH
 
 # This will set the default prompt to the walters theme
 
@@ -39,3 +32,4 @@ source ~/zsh/aliases.zsh
 source ~/zsh/completion.zsh
 source ~/zsh/prompt.zsh
 source ~/zsh/bindkeys.zsh
+[ -f ~/zsh/customize.zsh ] && source ~/zsh/customize.zsh
