@@ -82,7 +82,7 @@ set gdefault
 set hlsearch
 set incsearch
 
-set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [POS=%l,%v][%p%%]\ %{strftime(\"%d/%m/%y\ -\ %H:%M\")}
+set statusline=%{strftime(\"%d/%m/%y\ -\ %H:%M\")}\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ %F%m%r%h%w\ [POS=%l,%v][%p%%]
 set laststatus=2
 set ruler   
 set cmdheight=2

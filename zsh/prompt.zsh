@@ -64,5 +64,7 @@ if [ "$SSH_CONNECTION" != '' -a "$TERM" != 'linux' ]; then
     declare -a HOSTIP
     HOSTIP=`echo $SSH_CONNECTION |awk '{print $3}'`
     precmd () {print -Pn "\033]0;$HOSTIP:${PWD/#$HOME/~} \007"}
+elif [ "$TERM" = "xterm" ]; then
+    precmd () {print -Pn "\e]0; %~\a"}
 fi
 
