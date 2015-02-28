@@ -39,6 +39,8 @@ Plugin 'bbchung/clighter'
 Plugin 'SirVer/ultisnips'
 " Snippets
 Plugin 'honza/vim-snippets'
+" Ansible yaml syntax
+Plugin 'chase/vim-ansible-yaml'
 
 call vundle#end()
 
