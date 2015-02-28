@@ -1,0 +1,9 @@
+*
+!.vimrc
+!.zshrc
+!.gitignore
+!zsh/aliases.zsh
+!zsh/bindkeys.zsh
+!zsh/completion.zsh
+!zsh/config.zsh
+!zsh/prompt.zsh
