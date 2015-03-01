@@ -18,7 +18,7 @@ alias -s txt=$EDITOR
 alias -s PKGBUILD=$EDITOR
 
 # Normal aliases
-alias ls='ls --color=auto -F'
+alias ls='ls --color=auto -F --time-style=long-iso'
 alias lsd='ls -ld *(-/DN)'
 alias lsa='ls -ld .*'
 #alias f='find |grep'
