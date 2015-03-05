@@ -55,6 +55,11 @@ highlight PmenuThumb ctermbg=4 guibg=DarkGrey
 highlight TabLine ctermbg=3 term=underline cterm=bold,underline ctermfg=7 gui=underline guibg=DarkGrey
 highlight CursorColumn ctermbg=4 ctermfg=5 term=reverse guibg=Grey40
 
+syntax on
+filetype on
+filetype plugin on
+filetype indent on
+
 set nocompatible
 set noeb
 set confirm
@@ -87,17 +92,16 @@ set laststatus=2
 set ruler   
 set cmdheight=2
 
-syntax on
-filetype on
-filetype plugin on
-filetype indent on
-
 set linespace=0
 set wildmenu
 set backspace=2
 
 set foldenable
 set foldmethod=indent
+
+" no resizing for all windows after a ycm buffer view close
+set noequalalways
+
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
 " KeyMap {{{
@@ -203,4 +207,8 @@ function! OpenHeaderFileForCurrentSource()
         return
     endif
 endfunction
+" }}}
+
+" Reset tab stop for python {{{
+autocmd BufEnter *.py setlocal sw=2 ts=2 sts=2 expandtab
 " }}}
