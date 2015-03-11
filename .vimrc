@@ -67,9 +67,9 @@ set confirm
 set autoindent
 set cindent
 set smartindent
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
+set tabstop=2
+set softtabstop=2
+set shiftwidth=2
 set expandtab
 set smarttab
 
@@ -121,7 +121,6 @@ let g:ycm_min_num_identifier_candidate_chars = 5
 let g:ycm_error_symbol = 'E'
 let g:ycm_warning_symbol = 'W'
 let g:ycm_seed_identifiers_with_syntax = 1
-let g:ycm_autoclose_preview_window_after_insertion = 1
 let g:ycm_max_diagnostics_to_display = 10
 let g:ycm_key_invoke_completion = '<C-S-Space>'
 let g:ycm_key_detailed_diagnostics = 'gdd'
