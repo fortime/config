@@ -67,9 +67,9 @@ set confirm
 set autoindent
 set cindent
 set smartindent
-set tabstop=2
-set softtabstop=2
-set shiftwidth=2
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
 set expandtab
 set smarttab
 
@@ -209,5 +209,5 @@ endfunction
 " }}}
 
 " Reset tab stop for python {{{
-autocmd BufEnter *.py setlocal sw=2 ts=2 sts=2 expandtab
+" autocmd BufEnter *.py setlocal sw=2 ts=2 sts=2 expandtab
 " }}}
