@@ -8,7 +8,7 @@ call vundle#begin()
 " For vim plugins management
 Plugin 'gmarik/vundle'
 " For smart completion
-Plugin 'fortime/YouCompleteMe'
+Plugin 'Valloric/YouCompleteMe'
 " For ycm listing diagnostic message
 Plugin 'Valloric/ListToggle'
 " For syntax diagnosting
@@ -41,6 +41,8 @@ Plugin 'SirVer/ultisnips'
 Plugin 'honza/vim-snippets'
 " Ansible yaml syntax
 Plugin 'chase/vim-ansible-yaml'
+" Use shell to run the conent of current buffer
+Plugin 'JarrodCTaylor/vim-shell-executor'
 
 call vundle#end()
 
@@ -127,11 +129,12 @@ let g:ycm_key_detailed_diagnostics = 'gdd'
 let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
 let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
+let g:ycm_goto_buffer_command = 'horizontal-split'
 
-nnoremap gdf :YcmCompleter GoToDefinition<CR>
-nnoremap gdc :YcmCompleter GoToDeclaration<CR>
-nnoremap gsf :YcmCompleter GoToDefinition h<CR>
-nnoremap gsc :YcmCompleter GoToDeclaration h<CR>
+" nnoremap gdf :YcmCompleter GoToDefinition<CR>
+" nnoremap gdc :YcmCompleter GoToDeclaration<CR>
+" nnoremap gsf :YcmCompleter GoTo<CR>
+nnoremap gsc :YcmCompleter GoTo<CR>
 " }}}
 
 " NERDTree {{{

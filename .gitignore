@@ -7,3 +7,4 @@
 !zsh/completion.zsh
 !zsh/config.zsh
 !zsh/prompt.zsh
+!zsh/include.zsh
