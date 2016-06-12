@@ -21,7 +21,7 @@ Plugin 'tpope/vim-fugitive'
 Plugin 'scrooloose/nerdtree'
 " For tag navigation
 Plugin 'majutsushi/tagbar'
-" For toggling nerdtree and tagbar 
+" For toggling nerdtree and tagbar
 Plugin 'fortime/ntatb'
 " For systemd syntax
 Plugin 'Matt-Stevens/vim-systemd-syntax'
@@ -32,9 +32,9 @@ Plugin 'hail2u/vim-css-syntax'
 " For css3 syntax
 Plugin 'hail2u/vim-css3-syntax'
 " For cpp enhanced syntax highlight
-"Plugin 'octol/vim-cpp-enhanced-highlight'
+Plugin 'octol/vim-cpp-enhanced-highlight'
 " For cpp enhanced syntax highlight using libclang
-Plugin 'bbchung/clighter'
+"Plugin 'bbchung/clighter'
 " Snip
 Plugin 'SirVer/ultisnips'
 " Snippets
@@ -43,6 +43,12 @@ Plugin 'honza/vim-snippets'
 Plugin 'chase/vim-ansible-yaml'
 " Use shell to run the conent of current buffer
 Plugin 'JarrodCTaylor/vim-shell-executor'
+" Pretty status line
+Plugin 'bling/vim-airline'
+" vim-airline-themes
+Plugin 'vim-airline/vim-airline-themes'
+" highlight trailing whitespaces
+Plugin 'ntpeters/vim-better-whitespace'
 
 call vundle#end()
 
@@ -56,6 +62,8 @@ highlight PmenuSbar ctermbg=5 guibg=Grey
 highlight PmenuThumb ctermbg=4 guibg=DarkGrey
 highlight TabLine ctermbg=3 term=underline cterm=bold,underline ctermfg=7 gui=underline guibg=DarkGrey
 highlight CursorColumn ctermbg=4 ctermfg=5 term=reverse guibg=Grey40
+
+set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 14
 
 syntax on
 filetype on
@@ -76,6 +84,7 @@ set expandtab
 set smarttab
 
 set number
+set relativenumber
 
 set history=1000
 set nobackup
@@ -89,9 +98,10 @@ set gdefault
 set hlsearch
 set incsearch
 
-set statusline=%{strftime(\"%d/%m/%y\ -\ %H:%M\")}\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ %F%m%r%h%w\ [POS=%l,%v][%p%%]
+"set statusline=%{strftime(\"%d/%m/%y\ -\ %H:%M\")}\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ %F%m%r%h%w\ [POS=%l,%v][%p%%]
+set t_Co=256
 set laststatus=2
-set ruler   
+set ruler
 set cmdheight=2
 
 set linespace=0
@@ -107,7 +117,8 @@ set noequalalways
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
 " KeyMap {{{
-nnoremap <F2> :set number!<CR>
+nnoremap <F2> :set number! relativenumber!<CR>
+nnoremap gj= :%!python -m json.tool<CR>
 " }}}
 
 " JumpToTheLineLastOpen {{{
@@ -116,6 +127,9 @@ autocmd BufReadPost *
                 \   exe "normal g`\"" |
                 \ endif
 " }}}
+
+let g:loaded_zipPlugin = 1
+let g:loaded_zip = 1
 
 " YouCompleteMe {{{
 let g:ycm_confirm_extra_conf = 0
@@ -147,15 +161,20 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTree
 let g:tagbar_width = 20
 let g:tagbar_left = 1
 
-map <silent> <F8> :NtatbToggleAll<cr> 
-map <silent> <F9> :NtatbToggleTagbar<cr> 
-map <silent> <F10> :NtatbToggleNERDTree<cr> 
+map <silent> <F8> :NtatbToggleAll<cr>
+map <silent> <F9> :NtatbToggleTagbar<cr>
+map <silent> <F10> :NtatbToggleNERDTree<cr>
 " }}}
 
 " Ultisnip {{{
 let g:UltiSnipsExpandTrigger = "<tab>"
 let g:UltiSnipsJumpForwardTrigger = "<tab>"
 let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
+" }}}
+
+" {{{
+let g:airline_theme = "badwolf"
+let g:airline#extensions#tabline#enabled = 1
 " }}}
 
 " OpenCOrCppFileForCurrentHeader {{{
@@ -211,6 +230,38 @@ function! OpenHeaderFileForCurrentSource()
 endfunction
 " }}}
 
+" OpenHtmlFileForCurrentJsFile {{{
+autocmd bufenter *.js nnoremap ght :call OpenHtmlFileForCurrentJsFile()<CR>
+function! OpenHtmlFileForCurrentJsFile()
+    let extension = expand("%:e")
+    if extension == "js"
+        let target = expand("%<:p").".html"
+        echo target
+        if (filereadable(target))
+            exec ":sp ". target
+            return
+        endif
+    endif
+endfunction
+" }}}
+" OpenJsFileForCurrentHtmlFile {{{
+autocmd bufenter *.html nnoremap gjs :call OpenJsFileForCurrentHtmlFile()<CR>
+function! OpenJsFileForCurrentHtmlFile()
+    let extension = expand("%:e")
+    if extension == "html"
+        let target = expand("%<:p").".js"
+        echo target
+        if (filereadable(target))
+            exec ":sp ". target
+            return
+        endif
+    endif
+endfunction
+" }}}
+
 " Reset tab stop for python {{{
 " autocmd BufEnter *.py setlocal sw=2 ts=2 sts=2 expandtab
 " }}}
+"no expandtab for java {{{
+    autocmd BufEnter *.java setlocal expandtab!
+""}}}

@@ -27,6 +27,13 @@ setopt PROMPT_SUBST
 #
 eval `dircolors -b`
 
+fasd_cache="$HOME/.fasd-init-zsh"
+if [ "$(command -v fasd)" -nt "$fasd_cache" -o ! -s "$fasd_cache" ]; then
+    fasd --init posix-alias zsh-hook zsh-ccomp zsh-ccomp-install >| "$fasd_cache"
+fi
+source "$fasd_cache"
+unset fasd_cache
+
 source ~/zsh/config.zsh
 source ~/zsh/aliases.zsh
 source ~/zsh/completion.zsh
