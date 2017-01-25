@@ -34,10 +34,11 @@ fi
 source "$fasd_cache"
 unset fasd_cache
 
+source ~/zsh/function.zsh
 source ~/zsh/config.zsh
-source ~/zsh/aliases.zsh
+source ~/zsh/alias.zsh
 source ~/zsh/completion.zsh
 source ~/zsh/prompt.zsh
-source ~/zsh/bindkeys.zsh
+source ~/zsh/bindkey.zsh
 source ~/zsh/include.zsh
 [ -f ~/zsh/customize.zsh ] && source ~/zsh/customize.zsh

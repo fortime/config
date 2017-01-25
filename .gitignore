@@ -2,9 +2,10 @@
 !.vimrc
 !.zshrc
 !.gitignore
-!zsh/aliases.zsh
-!zsh/bindkeys.zsh
+!zsh/alias.zsh
+!zsh/bindkey.zsh
 !zsh/completion.zsh
 !zsh/config.zsh
 !zsh/prompt.zsh
 !zsh/include.zsh
+!zsh/function.zsh

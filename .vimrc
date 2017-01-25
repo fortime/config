@@ -49,6 +49,10 @@ Plugin 'bling/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 " highlight trailing whitespaces
 Plugin 'ntpeters/vim-better-whitespace'
+" Git
+"Plugin 'airblade/vim-gitgutter'
+" JavaScript
+Plugin 'pangloss/vim-javascript'
 
 call vundle#end()
 
