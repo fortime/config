@@ -53,6 +53,14 @@ Plugin 'ntpeters/vim-better-whitespace'
 "Plugin 'airblade/vim-gitgutter'
 " JavaScript
 Plugin 'pangloss/vim-javascript'
+" AsyncRun
+Plugin 'skywind3000/asyncrun.vim'
+" Visual Increment
+Plugin 'triglav/vim-visual-increment'
+" Scala
+Plugin 'derekwyatt/vim-scala'
+" Autoformat
+Plugin 'Chiel92/vim-autoformat'
 
 call vundle#end()
 
@@ -266,6 +274,23 @@ endfunction
 " Reset tab stop for python {{{
 " autocmd BufEnter *.py setlocal sw=2 ts=2 sts=2 expandtab
 " }}}
-"no expandtab for java {{{
-    autocmd BufEnter *.java setlocal expandtab!
-""}}}
+
+" No expandtab for java {{{
+autocmd BufEnter *.java setlocal expandtab!
+"}}}
+
+" Quick open/close quickfix window {{{
+nnoremap <F3> :copen 10<CR>
+nnoremap <F4> :ccl<CR>
+" }}}
+"
+
+" Autoformat {{{
+noremap <F5> :Autoformat<CR>
+let g:formatdef_scalafmt = "'scalafmt --stdin'"
+let g:formatters_scala = ['scalafmt']
+" To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
+let g:autoformat_autoindent = 0
+let g:autoformat_retab = 0
+let g:autoformat_remove_trailing_spaces = 0
+" }}}

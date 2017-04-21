@@ -66,11 +66,12 @@ RPROMPT=$'${RETCODE_PROMPT}'
 
 #export PROMPT=$'\n$(rb_prompt)in $(directory_name) $(git_dirty)$(need_push)\n› '
 
-if [ "$SSH_CONNECTION" != '' -a "$TERM" != 'linux' ]; then
+if [ "$SSH_CONNECTION" != '' ]; then
     declare -a HOSTIP
     HOSTIP=`echo $SSH_CONNECTION |awk '{print $3}'`
     precmd () {print -Pn "\033]0;$HOSTIP:${PWD/#$HOME/~} \007"}
-elif [ "$TERM" = "xterm" ]; then
+#elif [ "$TERM" = "xterm" ]; then
+else
     precmd () {print -Pn "\e]0; %~\a"}
 fi
 

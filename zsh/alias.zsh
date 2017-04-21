@@ -37,6 +37,7 @@ alias ..='cd ..'
 alias hist="grep '$1' /home/paul/.zsh_history"
 #alias irssi="irssi -c irc.freenode.net -n yyz"
 alias mem="free -m"
+alias top=htop
 
 # command L equivalent to command |less
 #alias -g L='|less' 
