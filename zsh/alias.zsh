@@ -40,7 +40,7 @@ alias mem="free -m"
 alias top=htop
 
 # command L equivalent to command |less
-#alias -g L='|less' 
+#alias -g L='|less'
 
 # command S equivalent to command &> /dev/null &
 #alias -g S='&> /dev/null &'
@@ -50,10 +50,11 @@ v() {
     file="$(fasd -Rfl "$1" | fzf -1 -0 --no-sort +m)" && vim "${file}" || return 1
 }
 
-z() {
+_z() {
     local dir
     dir="$(fasd -Rdl "$1" | fzf -1 -0 --no-sort +m)" && cd "${dir}" || return 1
 }
+alias z=_z
 
 fh() {
     print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')

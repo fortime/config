@@ -12,7 +12,9 @@ Plugin 'Valloric/YouCompleteMe'
 " For ycm listing diagnostic message
 Plugin 'Valloric/ListToggle'
 " For syntax diagnosting
-Plugin 'scrooloose/syntastic'
+"Plugin 'scrooloose/syntastic'
+" For async syntax diagnosting
+Plugin 'w0rp/ale'
 " For auto completion for quotes, parens, brackets
 Plugin 'Raimondi/delimitMate'
 " For git integration
@@ -61,6 +63,8 @@ Plugin 'triglav/vim-visual-increment'
 Plugin 'derekwyatt/vim-scala'
 " Autoformat
 Plugin 'Chiel92/vim-autoformat'
+" EasyMotion
+Plugin 'easymotion/vim-easymotion'
 
 call vundle#end()
 
@@ -156,11 +160,22 @@ let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
 let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
 let g:ycm_goto_buffer_command = 'horizontal-split'
+" reuse workspace
+let g:ycm_java_jdtls_use_clean_workspace = 0
 
-" nnoremap gdf :YcmCompleter GoToDefinition<CR>
-" nnoremap gdc :YcmCompleter GoToDeclaration<CR>
+nnoremap gdf :YcmCompleter GoToDefinition<CR>
+nnoremap gdc :YcmCompleter GoToDeclaration<CR>
 " nnoremap gsf :YcmCompleter GoTo<CR>
 nnoremap gsc :YcmCompleter GoTo<CR>
+
+function! ToggleYcm()
+    if g:ycm_auto_trigger == 0
+        let g:ycm_auto_trigger = 1
+    else
+        let g:ycm_auto_trigger = 0
+    endif
+endfunction
+map <silent> <F7> :call ToggleYcm()<CR>
 " }}}
 
 " NERDTree {{{
@@ -173,9 +188,9 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTree
 let g:tagbar_width = 20
 let g:tagbar_left = 1
 
-map <silent> <F8> :NtatbToggleAll<cr>
-map <silent> <F9> :NtatbToggleTagbar<cr>
-map <silent> <F10> :NtatbToggleNERDTree<cr>
+map <silent> <F8> :NtatbToggleAll<CR>
+map <silent> <F9> :NtatbToggleTagbar<CR>
+map <silent> <F10> :NtatbToggleNERDTree<CR>
 " }}}
 
 " Ultisnip {{{
@@ -293,4 +308,11 @@ let g:formatters_scala = ['scalafmt']
 let g:autoformat_autoindent = 0
 let g:autoformat_retab = 0
 let g:autoformat_remove_trailing_spaces = 0
+" }}}
+
+" ALE {{{
+" Pylint for python 3 by default
+let g:ale_python_pylint_executable = 'python3'
+" Disable java
+let g:ale_linters = {'java': []}
 " }}}
