@@ -165,8 +165,10 @@ let g:ycm_java_jdtls_use_clean_workspace = 0
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
-" nnoremap gsf :YcmCompleter GoTo<CR>
 nnoremap gsc :YcmCompleter GoTo<CR>
+nnoremap gfi :YcmCompleter FixIt<CR>
+nnoremap grf :YcmCompleter GoToReferences<CR>
+nnoremap grn :YcmCompleter RefactorRename<CR>
 
 function! ToggleYcm()
     if g:ycm_auto_trigger == 0
@@ -291,7 +293,7 @@ endfunction
 " }}}
 
 " No expandtab for java {{{
-autocmd BufEnter *.java setlocal expandtab!
+" autocmd BufEnter *.java setlocal expandtab!
 "}}}
 
 " Quick open/close quickfix window {{{

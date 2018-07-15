@@ -13,6 +13,12 @@ git_branch() {
 }
 
 git_dirty() {
+    files=$($git ls-files 2>/dev/null | wc -l)
+    if [ $files -gt 50000 ]
+    then
+        echo "[%{$fg_bold[grey]%}$(git_prompt_info)%{$reset_color%}]"
+        return
+    fi
     st=$($git status 2>/dev/null)
     if [[ $st == "" ]]
     then
