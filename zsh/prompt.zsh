@@ -14,7 +14,7 @@ git_branch() {
 
 git_dirty() {
     files=$($git ls-files 2>/dev/null | wc -l)
-    if [ $files -gt 50000 ]
+    if [ $files -gt 10000 ]
     then
         echo "[%{$fg_bold[grey]%}$(git_prompt_info)%{$reset_color%}]"
         return

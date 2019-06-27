@@ -65,6 +65,10 @@ Plugin 'derekwyatt/vim-scala'
 Plugin 'Chiel92/vim-autoformat'
 " EasyMotion
 Plugin 'easymotion/vim-easymotion'
+" vim-latex
+"Plugin 'vim-latex/vim-latex'
+" enhanced multi-file search
+Plugin 'wincent/ferret'
 
 call vundle#end()
 
@@ -130,6 +134,9 @@ set foldmethod=indent
 " no resizing for all windows after a ycm buffer view close
 set noequalalways
 
+" disable reindent while typing ':'
+set indentkeys-=<:>
+
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
 
 " KeyMap {{{
@@ -159,7 +166,8 @@ let g:ycm_key_detailed_diagnostics = 'gdd'
 let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
 let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
-let g:ycm_goto_buffer_command = 'horizontal-split'
+"let g:ycm_goto_buffer_command = 'horizontal-split'
+let g:ycm_goto_buffer_command = 'split-or-existing-window'
 " reuse workspace
 let g:ycm_java_jdtls_use_clean_workspace = 0
 
@@ -296,6 +304,11 @@ endfunction
 " autocmd BufEnter *.java setlocal expandtab!
 "}}}
 
+" folding by indent for tex {{{
+autocmd BufEnter *.tex setlocal foldmethod=indent
+let g:tex_flavor='latex'
+"}}}
+
 " Quick open/close quickfix window {{{
 nnoremap <F3> :copen 10<CR>
 nnoremap <F4> :ccl<CR>
@@ -306,6 +319,10 @@ nnoremap <F4> :ccl<CR>
 noremap <F5> :Autoformat<CR>
 let g:formatdef_scalafmt = "'scalafmt --stdin'"
 let g:formatters_scala = ['scalafmt']
+let g:formatdef_yamlfmt = "'prettier --parser yaml --tab-width 4 --stdin'"
+let g:formatters_yaml = ['yamlfmt']
+let g:formatdef_rustfmt = "'rustfmt'"
+let g:formatters_rust = ['rustfmt']
 " To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
 let g:autoformat_autoindent = 0
 let g:autoformat_retab = 0
@@ -317,4 +334,13 @@ let g:autoformat_remove_trailing_spaces = 0
 let g:ale_python_pylint_executable = 'python3'
 " Disable java
 let g:ale_linters = {'java': []}
+" }}}
+
+" vim-visual-increment {{{
+set nrformats=alpha,octal,hex
+" }}}
+
+" ferret {{{
+nmap gsw <Plug>(FerretAckWord)
+nmap gso <Plug>(FerretAck)
 " }}}
