@@ -69,6 +69,8 @@ Plugin 'easymotion/vim-easymotion'
 "Plugin 'vim-latex/vim-latex'
 " enhanced multi-file search
 Plugin 'wincent/ferret'
+" switch to the default im when leaving buffer
+Plugin 'rlue/vim-barbaric'
 
 call vundle#end()
 
@@ -138,6 +140,11 @@ set noequalalways
 set indentkeys-=<:>
 
 "nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
+
+" Map Ctrl-c to Esc
+" {{{
+ino <C-C> <Esc>
+" }}}
 
 " KeyMap {{{
 nnoremap <F2> :set number! relativenumber!<CR>
@@ -343,4 +350,9 @@ set nrformats=alpha,octal,hex
 " ferret {{{
 nmap gsw <Plug>(FerretAckWord)
 nmap gso <Plug>(FerretAck)
+" }}}
+
+" vim-barbaric {{{
+" Default ibus engine
+let g:barbaric_default = 'xkb:us::eng'
 " }}}
