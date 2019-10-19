@@ -1,96 +1,94 @@
-"To make vundle work
-set nocompatible               " be iMproved
-filetype off                   " required!
-set rtp+=~/.vim/bundle/vundle
-call vundle#begin()
+call plug#begin()
 
 " Bundle
 " For vim plugins management
-Plugin 'gmarik/vundle'
+Plug 'gmarik/vundle'
 " For smart completion
-Plugin 'Valloric/YouCompleteMe'
+Plug 'Valloric/YouCompleteMe'
 " For ycm listing diagnostic message
-Plugin 'Valloric/ListToggle'
+Plug 'Valloric/ListToggle'
 " For syntax diagnosting
-"Plugin 'scrooloose/syntastic'
+"Plug 'scrooloose/syntastic'
 " For async syntax diagnosting
-Plugin 'w0rp/ale'
+Plug 'w0rp/ale'
 " For auto completion for quotes, parens, brackets
-Plugin 'Raimondi/delimitMate'
+Plug 'Raimondi/delimitMate'
 " For git integration
-Plugin 'tpope/vim-fugitive'
+Plug 'tpope/vim-fugitive'
 " For exploring filesystem
-Plugin 'scrooloose/nerdtree'
+Plug 'scrooloose/nerdtree'
 " For tag navigation
-Plugin 'majutsushi/tagbar'
+Plug 'majutsushi/tagbar'
 " For toggling nerdtree and tagbar
-Plugin 'fortime/ntatb'
+Plug 'fortime/ntatb'
 " For systemd syntax
-Plugin 'Matt-Stevens/vim-systemd-syntax'
+Plug 'Matt-Stevens/vim-systemd-syntax'
 " For colorscheme
-Plugin 'rainbow.zip'
+Plug 'gmoe/vim-espresso'
 " For css syntax bugs fix
-Plugin 'hail2u/vim-css-syntax'
+Plug 'hail2u/vim-css-syntax'
 " For css3 syntax
-Plugin 'hail2u/vim-css3-syntax'
+Plug 'hail2u/vim-css3-syntax'
 " For cpp enhanced syntax highlight
-Plugin 'octol/vim-cpp-enhanced-highlight'
+Plug 'octol/vim-cpp-enhanced-highlight'
 " For cpp enhanced syntax highlight using libclang
-"Plugin 'bbchung/clighter'
+"Plug 'bbchung/clighter'
 " Snip
-Plugin 'SirVer/ultisnips'
+Plug 'SirVer/ultisnips'
 " Snippets
-Plugin 'honza/vim-snippets'
+Plug 'honza/vim-snippets'
 " Ansible yaml syntax
-Plugin 'chase/vim-ansible-yaml'
+Plug 'chase/vim-ansible-yaml'
 " Use shell to run the conent of current buffer
-Plugin 'JarrodCTaylor/vim-shell-executor'
+Plug 'JarrodCTaylor/vim-shell-executor'
 " Pretty status line
-Plugin 'bling/vim-airline'
+Plug 'bling/vim-airline'
 " vim-airline-themes
-Plugin 'vim-airline/vim-airline-themes'
+Plug 'vim-airline/vim-airline-themes'
 " highlight trailing whitespaces
-Plugin 'ntpeters/vim-better-whitespace'
+Plug 'ntpeters/vim-better-whitespace'
 " Git
-"Plugin 'airblade/vim-gitgutter'
+"Plug 'airblade/vim-gitgutter'
 " JavaScript
-Plugin 'pangloss/vim-javascript'
+Plug 'pangloss/vim-javascript'
 " AsyncRun
-Plugin 'skywind3000/asyncrun.vim'
+Plug 'skywind3000/asyncrun.vim'
 " Visual Increment
-Plugin 'triglav/vim-visual-increment'
+Plug 'triglav/vim-visual-increment'
 " Scala
-Plugin 'derekwyatt/vim-scala'
+Plug 'derekwyatt/vim-scala'
 " Autoformat
-Plugin 'Chiel92/vim-autoformat'
+Plug 'Chiel92/vim-autoformat'
 " EasyMotion
-Plugin 'easymotion/vim-easymotion'
+Plug 'easymotion/vim-easymotion'
 " vim-latex
-"Plugin 'vim-latex/vim-latex'
+"Plug 'vim-latex/vim-latex'
 " enhanced multi-file search
-Plugin 'wincent/ferret'
+Plug 'wincent/ferret'
 " switch to the default im when leaving buffer
-Plugin 'rlue/vim-barbaric'
+Plug 'rlue/vim-barbaric'
 
-call vundle#end()
-
-colorscheme neon
-highlight Folded ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40f0f0 guibg=#006090
-highlight FoldColumn ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40c0ff guibg=#404040
-highlight SignColumn ctermbg=yellow term=standout cterm=bold ctermfg=6 guifg=Cyan guibg=Grey
-highlight Conceal ctermbg=4 ctermfg=7 guifg=LightGrey guibg=DarkGrey
-highlight PmenuSel ctermbg=red ctermfg=0 guibg=DarkGrey
-highlight PmenuSbar ctermbg=5 guibg=Grey
-highlight PmenuThumb ctermbg=4 guibg=DarkGrey
-highlight TabLine ctermbg=3 term=underline cterm=bold,underline ctermfg=7 gui=underline guibg=DarkGrey
-highlight CursorColumn ctermbg=4 ctermfg=5 term=reverse guibg=Grey40
-
-set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 14
+call plug#end()
 
 syntax on
 filetype on
 filetype plugin on
 filetype indent on
+
+set t_Co=256
+colorscheme espresso
+highlight Normal ctermbg=NONE
+"highlight Folded ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40f0f0 guibg=#006090
+"highlight FoldColumn ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40c0ff guibg=#404040
+"highlight SignColumn ctermbg=yellow term=standout cterm=bold ctermfg=6 guifg=Cyan guibg=Grey
+"highlight Conceal ctermbg=4 ctermfg=7 guifg=LightGrey guibg=DarkGrey
+"highlight PmenuSel ctermbg=red ctermfg=0 guibg=DarkGrey
+"highlight PmenuSbar ctermbg=5 guibg=Grey
+"highlight PmenuThumb ctermbg=4 guibg=DarkGrey
+"highlight TabLine ctermbg=3 term=underline cterm=bold,underline ctermfg=7 gui=underline guibg=DarkGrey
+"highlight CursorColumn ctermbg=4 ctermfg=5 term=reverse guibg=Grey40
+
+set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 14
 
 set nocompatible
 set noeb
@@ -121,7 +119,6 @@ set hlsearch
 set incsearch
 
 "set statusline=%{strftime(\"%d/%m/%y\ -\ %H:%M\")}\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ %F%m%r%h%w\ [POS=%l,%v][%p%%]
-set t_Co=256
 set laststatus=2
 set ruler
 set cmdheight=2
@@ -157,9 +154,6 @@ autocmd BufReadPost *
                 \   exe "normal g`\"" |
                 \ endif
 " }}}
-
-let g:loaded_zipPlugin = 1
-let g:loaded_zip = 1
 
 " YouCompleteMe {{{
 let g:ycm_confirm_extra_conf = 0
