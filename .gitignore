@@ -9,3 +9,4 @@
 !zsh/prompt.zsh
 !zsh/include.zsh
 !zsh/function.zsh
+zsh/customize.zsh
