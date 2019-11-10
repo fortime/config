@@ -25,6 +25,7 @@ Plug 'fortime/ntatb'
 Plug 'Matt-Stevens/vim-systemd-syntax'
 " For colorscheme
 Plug 'gmoe/vim-espresso'
+Plug 'NLKNguyen/papercolor-theme'
 " For css syntax bugs fix
 Plug 'hail2u/vim-css-syntax'
 " For css3 syntax
@@ -76,8 +77,20 @@ filetype plugin on
 filetype indent on
 
 set t_Co=256
-colorscheme espresso
-highlight Normal ctermbg=NONE
+set background=dark
+
+" paper-color-scheme {{{
+let g:PaperColor_Theme_Options = {
+  \   'theme': {
+  \     'default': {
+  \       'transparent_background': 1
+  \     }
+  \   }
+  \ }
+" }}}
+colorscheme PaperColor
+hi Function guifg=#6c99bb ctermfg=67
+"highlight Normal ctermbg=NONE
 "highlight Folded ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40f0f0 guibg=#006090
 "highlight FoldColumn ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40c0ff guibg=#404040
 "highlight SignColumn ctermbg=yellow term=standout cterm=bold ctermfg=6 guifg=Cyan guibg=Grey
@@ -301,8 +314,10 @@ endfunction
 " autocmd BufEnter *.py setlocal sw=2 ts=2 sts=2 expandtab
 " }}}
 
-" No expandtab for java {{{
+" JAVA specified seting {{{
 " autocmd BufEnter *.java setlocal expandtab!
+autocmd BufEnter *.java setlocal java_highlight_functions=1
+autocmd BufEnter *.java setlocal java_highlight_java_lang_ids=1
 "}}}
 
 " folding by indent for tex {{{
