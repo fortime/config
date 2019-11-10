@@ -316,8 +316,8 @@ endfunction
 
 " JAVA specified seting {{{
 " autocmd BufEnter *.java setlocal expandtab!
-autocmd BufEnter *.java setlocal java_highlight_functions=1
-autocmd BufEnter *.java setlocal java_highlight_java_lang_ids=1
+let g:java_highlight_functions=1
+let g:java_highlight_java_lang_ids=1
 "}}}
 
 " folding by indent for tex {{{
