@@ -47,21 +47,21 @@ alias top=htop
 
 v() {
     local file
-    file="$(fasd -Rfl "$1" | fzf -1 -0 --no-sort +m)" && vim "${file}" || return 1
+    file="$(fasd -Rfl "$1" | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
 }
 
 _z() {
     local dir
-    dir="$(fasd -Rdl "$1" | fzf -1 -0 --no-sort +m)" && cd "${dir}" || return 1
+    dir="$(fasd -Rdl "$1" | fzf-tmux -1 -0 --no-sort +m)" && cd "${dir}" || return 1
 }
 alias z=_z
 
 fh() {
-    print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+    print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf-tmux +s --tac | sed 's/ *[0-9]* *//')
 }
 
 fkill() {
-    pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+    pid=$(ps -ef | sed 1d | fzf-tmux -m | awk '{print $2}')
 
     if [ "x$pid" != "x" ]
     then

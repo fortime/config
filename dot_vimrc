@@ -64,8 +64,10 @@ Plug 'Chiel92/vim-autoformat'
 Plug 'easymotion/vim-easymotion'
 " vim-latex
 "Plug 'vim-latex/vim-latex'
-" enhanced multi-file search
+" Enhanced multi-file search
 Plug 'wincent/ferret'
+" Enhanced fzf
+Plug 'junegunn/fzf.vim'
 " switch to the default im when leaving buffer
 Plug 'rlue/vim-barbaric'
 
@@ -364,4 +366,9 @@ nmap gso <Plug>(FerretAck)
 " vim-barbaric {{{
 " Default ibus engine
 let g:barbaric_default = 'xkb:us::eng'
+" }}}
+
+" fzf {{{
+nmap <silent> gsg :call fzf#run({'source': 'git ls-files', 'sink': 'e', 'right': '40%'})<CR>
+nmap <silent> gsr :call fzf#run({'sink': 'e', 'right': '40%'})<CR>
 " }}}
