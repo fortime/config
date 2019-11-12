@@ -78,17 +78,19 @@ filetype on
 filetype plugin on
 filetype indent on
 
-set t_Co=256
+"set t_Co=256
 set background=dark
 
 " paper-color-scheme {{{
-let g:PaperColor_Theme_Options = {
-  \   'theme': {
-  \     'default': {
-  \       'transparent_background': 1
-  \     }
-  \   }
-  \ }
+if !has('gui_running')
+    let g:PaperColor_Theme_Options = {
+    \        'theme': {
+    \            'default': {
+    \                'transparent_background': 1
+    \            }
+    \        }
+    \    }
+endif
 " }}}
 colorscheme PaperColor
 hi Function guifg=#6c99bb ctermfg=67
@@ -369,6 +371,20 @@ let g:barbaric_default = 'xkb:us::eng'
 " }}}
 
 " fzf {{{
-nmap <silent> gsg :call fzf#run({'source': 'git ls-files', 'sink': 'e', 'right': '40%'})<CR>
-nmap <silent> gsr :call fzf#run({'sink': 'e', 'right': '40%'})<CR>
+nmap <silent> gsg :call fzf#run({'source': 'git ls-files', 'sink': 'e', 'down': '40%'})<CR>
+nmap <silent> gsr :call fzf#run({'sink': 'e', 'down': '40%'})<CR>
+
+function! Ferret_buffer_line_handler(lines)
+    if len(a:lines) < 2
+        return
+    endif
+
+    execute split(a:lines[1], '\t')[0]
+    normal! ^zvzz
+    exec "normal \<Enter>"
+endfunction
+
+command! -bang -nargs=* FerretBLines call fzf#vim#buffer_lines('', {'sink*': function('Ferret_buffer_line_handler')}, <bang>0)
+nmap ,s :copen \| FerretBLines<CR>
+nmap ,f :BLines<CR>
 " }}}
