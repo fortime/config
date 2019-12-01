@@ -146,6 +146,7 @@ set backspace=2
 
 set foldenable
 set foldmethod=indent
+set completeopt+=popup
 
 " no resizing for all windows after a ycm buffer view close
 set noequalalways
@@ -209,7 +210,7 @@ map <silent> <F7> :call ToggleYcm()<CR>
 " NERDTree {{{
 let g:NERDTreeWinSize = 20
 let NERDTreeWinPos=1
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 " }}}
 
 " Tagbar {{{
@@ -233,7 +234,7 @@ let g:airline#extensions#tabline#enabled = 1
 " }}}
 
 " OpenCOrCppFileForCurrentHeader {{{
-autocmd bufenter *.h,*.hpp nnoremap gcc :call OpenCOrCppFileForCurrentHeader()<CR>
+autocmd BufEnter *.h,*.hpp nnoremap gcc :call OpenCOrCppFileForCurrentHeader()<CR>
 function! OpenCOrCppFileForCurrentHeader()
     let extension = expand("%:e")
     if extension == "h"
@@ -261,7 +262,7 @@ function! OpenCOrCppFileForCurrentHeader()
 endfunction
 " }}}
 " OpenHeaderFileForCurrentSource {{{
-autocmd bufenter *.cc,*.cpp,*.c nnoremap gch :call OpenHeaderFileForCurrentSource()<CR>
+autocmd BufEnter *.cc,*.cpp,*.c nnoremap gch :call OpenHeaderFileForCurrentSource()<CR>
 function! OpenHeaderFileForCurrentSource()
     let extension = expand("%:e")
     if extension != "cc" && extension != "cpp" && extension != "c"
@@ -286,7 +287,7 @@ endfunction
 " }}}
 
 " OpenHtmlFileForCurrentJsFile {{{
-autocmd bufenter *.js nnoremap ght :call OpenHtmlFileForCurrentJsFile()<CR>
+autocmd BufEnter *.js nnoremap ght :call OpenHtmlFileForCurrentJsFile()<CR>
 function! OpenHtmlFileForCurrentJsFile()
     let extension = expand("%:e")
     if extension == "js"
@@ -300,7 +301,7 @@ function! OpenHtmlFileForCurrentJsFile()
 endfunction
 " }}}
 " OpenJsFileForCurrentHtmlFile {{{
-autocmd bufenter *.html nnoremap gjs :call OpenJsFileForCurrentHtmlFile()<CR>
+autocmd BufEnter *.html nnoremap gjs :call OpenJsFileForCurrentHtmlFile()<CR>
 function! OpenJsFileForCurrentHtmlFile()
     let extension = expand("%:e")
     if extension == "html"
@@ -387,4 +388,9 @@ endfunction
 command! -bang -nargs=* FerretBLines call fzf#vim#buffer_lines('', {'sink*': function('Ferret_buffer_line_handler')}, <bang>0)
 nmap ,s :copen \| FerretBLines<CR>
 nmap ,f :BLines<CR>
+" }}}
+
+" No line number {{{
+autocmd VimEnter * if (&filetype == '') | setlocal nonumber norelativenumber | else | setlocal number relativenumber | endif
+autocmd BufEnter * if (&filetype == '') | setlocal nonumber norelativenumber | else | setlocal number relativenumber | endif
 " }}}
