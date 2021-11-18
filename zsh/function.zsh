@@ -40,3 +40,46 @@ function cpnglatex() {
     fi
     pdftoppm -png -r $2 "${filename_without_suffix}.pdf" > "${filename_without_suffix}.png"
 }
+
+vz() {
+    local file
+    file="$(fasd -Rfl "$1" | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
+}
+
+lgsg() {
+    local file
+    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && less "${file}" || return 1
+}
+
+bgsg() {
+    local file
+    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && bat "${file}" || return 1
+}
+
+vgsg() {
+    local file
+    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
+}
+
+gsg() {
+    local file
+    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && echo "${file}" || return 1
+}
+
+_z() {
+    local dir
+    dir="$(fasd -Rdl "$1" | fzf-tmux -1 -0 --no-sort +m)" && cd "${dir}" || return 1
+}
+
+fh() {
+    print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf-tmux +s --tac | sed 's/ *[0-9]* *//')
+}
+
+fkill() {
+    pid=$(ps -ef | sed 1d | fzf-tmux -m | awk '{print $2}')
+
+    if [ "x$pid" != "x" ]
+    then
+        kill -${1:-9} $pid
+    fi
+}

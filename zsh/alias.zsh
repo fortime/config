@@ -33,8 +33,6 @@ alias ..='cd ..'
 #alias firestarter='sudo su -c firestarter'
 #alias mpg123='mpg123 -o oss'
 #alias mpg321='mpg123 -o oss'
-#alias vba='/home/paul/downloads/VisualBoyAdvance -f 4'
-alias hist="grep '$1' /home/paul/.zsh_history"
 #alias irssi="irssi -c irc.freenode.net -n yyz"
 alias mem="free -m"
 alias top=htop
@@ -44,27 +42,4 @@ alias top=htop
 
 # command S equivalent to command &> /dev/null &
 #alias -g S='&> /dev/null &'
-
-v() {
-    local file
-    file="$(fasd -Rfl "$1" | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
-}
-
-_z() {
-    local dir
-    dir="$(fasd -Rdl "$1" | fzf-tmux -1 -0 --no-sort +m)" && cd "${dir}" || return 1
-}
 alias z=_z
-
-fh() {
-    print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf-tmux +s --tac | sed 's/ *[0-9]* *//')
-}
-
-fkill() {
-    pid=$(ps -ef | sed 1d | fzf-tmux -m | awk '{print $2}')
-
-    if [ "x$pid" != "x" ]
-    then
-        kill -${1:-9} $pid
-    fi
-}

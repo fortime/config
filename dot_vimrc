@@ -72,6 +72,8 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf.vim'
 " switch to the default im when leaving buffer
 Plug 'rlue/vim-barbaric'
+" complementary pairs of mappings
+Plug 'tpope/vim-unimpaired'
 
 call plug#end()
 
@@ -198,10 +200,10 @@ let g:ycm_java_jdtls_use_clean_workspace = 0
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
+nnoremap gdi :YcmCompleter GoToImplementation<CR>
+nnoremap gdr :YcmCompleter GoToReferences<CR>
 nnoremap gsc :YcmCompleter GoTo<CR>
 nnoremap gfi :YcmCompleter FixIt<CR>
-nnoremap grf :YcmCompleter GoToReferences<CR>
-nnoremap grn :YcmCompleter RefactorRename<CR>
 
 function! ToggleYcm()
     if g:ycm_auto_trigger == 0
@@ -360,6 +362,8 @@ let g:formatdef_cssfmt = "'prettier --parser css --tab-width 2 --stdin'"
 let g:formatters_css = ['cssfmt']
 let g:formatdef_htmlfmt = "'prettier --parser html --tab-width 2 --stdin'"
 let g:formatters_html = ['htmlfmt']
+let g:formatdef_xmlfmt = "'tidy -q -xml --indent-spaces 4 --indent yes --indent-attributes yes --vertical-space yes --output-xml yes --wrap 0'"
+let g:formatters_xml = ['xmlfmt']
 let g:formatters_python = ['black']
 " To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
 let g:autoformat_autoindent = 0
@@ -441,4 +445,11 @@ endfunction
 
 inoremap <expr> <C-e> ScrollPopup(3) ? '' : '<C-e>'
 inoremap <expr> <C-y> ScrollPopup(-3) ? '' : '<C-y>'
+" }}}
+
+" Load host specific variables {{{
+let $CUSTOM_VARIABLE_VIMRC = $HOME . "/.vim/custom_variable_vimrc"
+if filereadable($CUSTOM_VARIABLE_VIMRC)
+    source $CUSTOM_VARIABLE_VIMRC
+endif
 " }}}

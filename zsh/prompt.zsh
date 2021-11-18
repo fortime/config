@@ -1,4 +1,6 @@
-autoload -U promptinit && promptinit 
+setopt PROMPT_SUBST
+
+autoload -U promptinit && promptinit
 autoload -U colors && colors
 
 if [ -n "$commands[git]" ]
@@ -58,7 +60,7 @@ need_push () {
 }
 
 function collapse_pwd {
-echo "%{$fg[yellow]%}$(pwd | sed -e "s,^$HOME,~,")%{$reset_color%}"
+    echo "%{$fg[yellow]%}$(pwd | sed -e "s,^$HOME,~,")%{$reset_color%}"
 }
 
 local USER_PROMPT="%{$fg_bold[red]%}%n%{$reset_color%}"

@@ -12,7 +12,6 @@ export BROWSER=firefox
 
 # This will set the default prompt to the walters theme
 
-setopt PROMPT_SUBST
 #setopt autopushd pushdminus pushdsilent pushdtohome
 #setopt autocd
 #setopt cdablevars
