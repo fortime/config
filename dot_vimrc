@@ -372,10 +372,13 @@ let g:autoformat_remove_trailing_spaces = 0
 " }}}
 
 " ALE {{{
+" Only run linters named in ale_linters settings.
+let g:ale_linters_explicit = 1
 " Pylint for python 3 by default
 let g:ale_python_pylint_executable = 'python3'
 " Disable java
-let g:ale_linters = {'java': []}
+let g:ale_linters = {'python': ['flake8']}
+let g:ale_python_flake8_options = '--max-line-length 88'
 " }}}
 
 " vim-visual-increment {{{
