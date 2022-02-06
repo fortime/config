@@ -10,3 +10,4 @@
 !zsh/include.zsh
 !zsh/function.zsh
 zsh/customize.zsh
+zsh/include

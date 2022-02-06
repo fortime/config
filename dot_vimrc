@@ -68,12 +68,16 @@ Plug 'easymotion/vim-easymotion'
 "Plug 'vim-latex/vim-latex'
 " Enhanced multi-file search
 Plug 'wincent/ferret'
+" Basic fzf
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 " Enhanced fzf
 Plug 'junegunn/fzf.vim'
 " switch to the default im when leaving buffer
 Plug 'rlue/vim-barbaric'
 " complementary pairs of mappings
 Plug 'tpope/vim-unimpaired'
+" debugger plugin
+Plug 'puremourning/vimspector'
 
 call plug#end()
 
@@ -98,6 +102,7 @@ endif
 " }}}
 colorscheme PaperColor
 hi Function guifg=#6c99bb ctermfg=67
+hi LineNr guifg=#050505 ctermfg=grey
 "highlight Normal ctermbg=NONE
 "highlight Folded ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40f0f0 guibg=#006090
 "highlight FoldColumn ctermbg=black term=standout cterm=bold ctermfg=6 guifg=#40c0ff guibg=#404040
@@ -170,6 +175,7 @@ ino <C-C> <Esc>
 " KeyMap {{{
 nnoremap <F2> :set number! relativenumber!<CR>
 nnoremap gj= :%!python -m json.tool<CR>
+nnoremap <F6> :echo expand('%')<CR>
 " }}}
 
 " JumpToTheLineLastOpen {{{
@@ -185,7 +191,7 @@ let g:ycm_min_num_identifier_candidate_chars = 5
 let g:ycm_error_symbol = 'E'
 let g:ycm_warning_symbol = 'W'
 let g:ycm_seed_identifiers_with_syntax = 1
-let g:ycm_max_diagnostics_to_display = 10
+let g:ycm_max_diagnostics_to_display = 30
 let g:ycm_key_invoke_completion = '<C-S-Space>'
 let g:ycm_key_detailed_diagnostics = 'gdd'
 let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
@@ -349,7 +355,14 @@ nnoremap <F4> :ccl<CR>
 "
 
 " Autoformat {{{
-noremap <F5> :Autoformat<CR>
+function! CustomizedAutoformat()
+    if &filetype == "java"
+        YcmCompleter Format
+    else
+        Autoformat
+    endif
+endfunction
+noremap <F5> :call CustomizedAutoformat()<CR>
 let g:formatdef_prettier = '"prettier --stdin-filepath ".expand("%:p").(&textwidth ? " --print-width ".&textwidth : "")." --tab-width=".shiftwidth()'
 let g:formatdef_scalafmt = "'scalafmt --stdin'"
 let g:formatters_scala = ['scalafmt']
@@ -362,7 +375,7 @@ let g:formatdef_cssfmt = "'prettier --parser css --tab-width 2 --stdin'"
 let g:formatters_css = ['cssfmt']
 let g:formatdef_htmlfmt = "'prettier --parser html --tab-width 2 --stdin'"
 let g:formatters_html = ['htmlfmt']
-let g:formatdef_xmlfmt = "'tidy -q -xml --indent-spaces 4 --indent yes --indent-attributes yes --vertical-space yes --output-xml yes --wrap 0'"
+let g:formatdef_xmlfmt = "'tidy -q -raw -xml --indent-spaces 4 --indent yes --indent-attributes yes --vertical-space yes --output-xml yes --wrap 0'"
 let g:formatters_xml = ['xmlfmt']
 let g:formatters_python = ['black']
 " To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
@@ -376,7 +389,7 @@ let g:autoformat_remove_trailing_spaces = 0
 let g:ale_linters_explicit = 1
 " Pylint for python 3 by default
 let g:ale_python_pylint_executable = 'python3'
-" Disable java
+"let g:ale_linters = {'python': ['flake8', 'pylint']}
 let g:ale_linters = {'python': ['flake8']}
 let g:ale_python_flake8_options = '--max-line-length 88'
 " }}}
@@ -455,4 +468,28 @@ let $CUSTOM_VARIABLE_VIMRC = $HOME . "/.vim/custom_variable_vimrc"
 if filereadable($CUSTOM_VARIABLE_VIMRC)
     source $CUSTOM_VARIABLE_VIMRC
 endif
+" }}}
+
+" init vimspector {{{
+"let g:vimspector_enable_mappings = 'HUMAN'
+let s:jdt_ls_debugger_port = 0
+function! s:StartDebugging()
+    if s:jdt_ls_debugger_port <= 0
+        " Get the DAP port
+        let s:jdt_ls_debugger_port = youcompleteme#GetCommandResponse(
+            \ 'ExecuteCommand',
+            \ 'vscode.java.startDebugSession' )
+
+        if s:jdt_ls_debugger_port == ''
+             echom "Unable to get DAP port - is JDT.LS initialized?"
+             let s:jdt_ls_debugger_port = 0
+             return
+         endif
+    endif
+
+    " Start debugging with the DAP port
+    call vimspector#LaunchWithSettings( { 'DAPPort': s:jdt_ls_debugger_port } )
+endfunction
+
+nnoremap <silent> <buffer> <Leader><F5> :call <SID>StartDebugging()<CR>
 " }}}
