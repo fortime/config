@@ -174,7 +174,6 @@ ino <C-C> <Esc>
 
 " KeyMap {{{
 nnoremap <F2> :set number! relativenumber!<CR>
-nnoremap gj= :%!python -m json.tool<CR>
 nnoremap <F6> :echo expand('%')<CR>
 " }}}
 
@@ -330,7 +329,7 @@ endfunction
 " }}}
 
 " Reset tab stop {{{
-autocmd FileType javascript,javascriptreact,css setlocal sw=2 ts=2 sts=2 expandtab
+autocmd FileType javascript,javascriptreact,css,json,yaml setlocal sw=2 ts=2 sts=2 expandtab
 " }}}
 
 " Edit indentkeys {{{
@@ -377,6 +376,8 @@ let g:formatdef_htmlfmt = "'prettier --parser html --tab-width 2 --stdin'"
 let g:formatters_html = ['htmlfmt']
 let g:formatdef_xmlfmt = "'tidy -q -raw -xml --indent-spaces 4 --indent yes --indent-attributes yes --vertical-space yes --output-xml yes --wrap 0'"
 let g:formatters_xml = ['xmlfmt']
+let g:formatdef_jsonfmt = "'jq'"
+let g:formatters_json = ['jsonfmt']
 let g:formatters_python = ['black']
 " To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
 let g:autoformat_autoindent = 0

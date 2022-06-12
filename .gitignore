@@ -1,13 +1,2 @@
-*
-!.vimrc
-!.zshrc
-!.gitignore
-!zsh/alias.zsh
-!zsh/bindkey.zsh
-!zsh/completion.zsh
-!zsh/config.zsh
-!zsh/prompt.zsh
-!zsh/include.zsh
-!zsh/function.zsh
 zsh/customize.zsh
 zsh/include

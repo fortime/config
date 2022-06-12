@@ -23,6 +23,7 @@ alias ls='ls --color=auto -F --time-style=long-iso'
 alias ll='ls --color=auto -F --time-style=long-iso -l'
 alias lsd='ls -ld *(-/DN)'
 alias lsa='ls -ld .*'
+alias ip='ip -color=auto'
 #alias f='find |grep'
 #alias c="clear"
 #alias dir='ls -1'
