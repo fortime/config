@@ -365,9 +365,7 @@ noremap <F5> :call CustomizedAutoformat()<CR>
 let g:formatdef_prettier = '"prettier --stdin-filepath ".expand("%:p").(&textwidth ? " --print-width ".&textwidth : "")." --tab-width=".shiftwidth()'
 let g:formatdef_scalafmt = "'scalafmt --stdin'"
 let g:formatters_scala = ['scalafmt']
-let g:formatdef_yamlfmt = "'prettier --parser yaml --tab-width 4 --stdin'"
-let g:formatters_yaml = ['yamlfmt']
-let g:formatdef_rustfmt = "'rustfmt --edition 2018'"
+let g:formatdef_rustfmt = "'rustfmt --edition 2021'"
 let g:formatters_rust = ['rustfmt']
 let g:formatters_javascript = ['prettier']
 let g:formatdef_cssfmt = "'prettier --parser css --tab-width 2 --stdin'"
@@ -410,7 +408,8 @@ let g:barbaric_default = 'xkb:us::eng'
 " }}}
 
 " fzf {{{
-nmap <silent> gsg :GFiles<CR>
+nmap <silent> gsg :GFiles --recurse-submodules<CR>
+nmap <silent> gsh :GFiles -moc --directory<CR>
 nmap <silent> gsr :Files<CR>
 
 function! FerretBufferLineHandler(lines)
@@ -431,6 +430,7 @@ nmap ,f :BLines<CR>
 " No line number {{{
 autocmd VimEnter * if (&filetype == '') | setlocal nonumber norelativenumber | else | setlocal number relativenumber | endif
 autocmd BufReadPost * if (&filetype == '') | setlocal nonumber norelativenumber | else | setlocal number relativenumber | endif
+autocmd TerminalWinOpen * setlocal nonumber norelativenumber
 " }}}
 
 " Scroll popup {{{

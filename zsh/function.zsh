@@ -48,22 +48,22 @@ vz() {
 
 lgsg() {
     local file
-    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && less "${file}" || return 1
+    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m)" && less "${file}" || return 1
 }
 
 bgsg() {
     local file
-    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && bat "${file}" || return 1
+    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m)" && bat "${file}" || return 1
 }
 
 vgsg() {
     local file
-    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
+    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
 }
 
 gsg() {
     local file
-    file="$(git ls-files | fzf-tmux -1 -0 --no-sort +m)" && echo "${file}" || return 1
+    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m)" && echo "${file}" || return 1
 }
 
 _z() {
