@@ -33,6 +33,7 @@ fi
 source "$fasd_cache"
 unset fasd_cache
 
+source ~/zsh/env.zsh
 source ~/zsh/function.zsh
 source ~/zsh/config.zsh
 source ~/zsh/alias.zsh

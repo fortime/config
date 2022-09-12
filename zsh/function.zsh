@@ -1,4 +1,4 @@
-function gbkunzip() {
+gbkunzip() {
     filename=$(basename $1)
     tmp_dir="${filename}_dir"
     LANG=C 7za x -o"$tmp_dir" "$1"
@@ -12,7 +12,7 @@ function gbkunzip() {
     rm -r "$tmp_dir"
 }
 
-function cpdflatex() {
+cpdflatex() {
     work_path=$(cd $(dirname $1); pwd)
     cd "$work_path"
     filename=$(basename $1)
@@ -24,7 +24,7 @@ function cpdflatex() {
     rm -r "$tmp_dir"
 }
 
-function cpnglatex() {
+cpnglatex() {
     if [ -z "$2" ]
     then
         echo "resolution must be provided!" >&2
@@ -48,22 +48,22 @@ vz() {
 
 lgsg() {
     local file
-    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m)" && less "${file}" || return 1
+    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && less "${file}" || return 1
 }
 
 bgsg() {
     local file
-    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m)" && bat "${file}" || return 1
+    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && bat "${file}" || return 1
 }
 
 vgsg() {
     local file
-    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m)" && vim "${file}" || return 1
+    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && vim "${file}" || return 1
 }
 
 gsg() {
     local file
-    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m)" && echo "${file}" || return 1
+    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && echo "${file}" || return 1
 }
 
 _z() {
