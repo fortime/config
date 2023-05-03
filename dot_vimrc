@@ -402,11 +402,6 @@ nmap gsw <Plug>(FerretAckWord)
 nmap gso <Plug>(FerretAck)
 " }}}
 
-" vim-barbaric {{{
-" Default ibus engine
-let g:barbaric_default = 'xkb:us::eng'
-" }}}
-
 " fzf {{{
 nmap <silent> gsg :GFiles --recurse-submodules<CR>
 nmap <silent> gsh :GFiles -moc --directory<CR>
