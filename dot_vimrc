@@ -4,7 +4,7 @@ call plug#begin()
 " For vim plugins management
 "Plug 'gmarik/vundle'
 " For smart completion
-Plug 'Valloric/YouCompleteMe'
+Plug 'Valloric/YouCompleteMe', { 'do': './install.py --java-completer --js-completer --clang-completer --system-libclang' }
 " For ycm listing diagnostic message
 Plug 'Valloric/ListToggle'
 " For syntax diagnosting
@@ -58,8 +58,6 @@ Plug 'othree/es.next.syntax.vim'
 Plug 'skywind3000/asyncrun.vim'
 " Visual Increment
 Plug 'triglav/vim-visual-increment'
-" Scala
-Plug 'derekwyatt/vim-scala'
 " Autoformat
 Plug 'Chiel92/vim-autoformat'
 " EasyMotion
@@ -72,12 +70,33 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 " Enhanced fzf
 Plug 'junegunn/fzf.vim'
-" switch to the default im when leaving buffer
-Plug 'rlue/vim-barbaric'
 " complementary pairs of mappings
 Plug 'tpope/vim-unimpaired'
 " debugger plugin
 Plug 'puremourning/vimspector'
+
+function! Cond(cond, ...)
+    let opts = get(a:000, 0, {})
+    return a:cond ? opts : extend(opts, { 'on': [], 'for': [] })
+endfunction
+
+function! FcitxRemoteWontPanic()
+    " fcitx5-remote will panic when it can't chat to dbus
+    if !executable('fcitx5-remote')
+        return 1
+    endif
+    if !empty($DBUS_SESSION_BUS_ADDRESS)
+        let l:bus_path = substitute($DBUS_SESSION_BUS_ADDRESS, "unix:path=", "", "")
+        return !empty(glob(l:bus_path))
+    endif
+    if !empty($XDG_RUNTIME_DIR)
+        return !empty(glob($XDG_RUNTIME_DIR + "/bus"))
+    endif
+    return 0
+endfunction
+
+" switch to the default im when leaving buffer
+Plug 'rlue/vim-barbaric', Cond(FcitxRemoteWontPanic())
 
 call plug#end()
 
