@@ -230,6 +230,9 @@ nnoremap gdi :YcmCompleter GoToImplementation<CR>
 nnoremap gdr :YcmCompleter GoToReferences<CR>
 nnoremap gsc :YcmCompleter GoTo<CR>
 nnoremap gfi :YcmCompleter FixIt<CR>
+nnoremap gdt :YcmCompleter GoToSymbol<Space>
+nnoremap grf :YcmCompleter OpenProject .
+nnoremap gll :YcmToggleLogs<CR>
 
 function! ToggleYcm()
     if g:ycm_auto_trigger == 0

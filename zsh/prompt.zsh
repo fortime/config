@@ -15,34 +15,60 @@ git_branch() {
 }
 
 git_dirty() {
+    local workspace
+    local files
+    local st
+    local ret
+    workspace=$(git rev-parse --show-toplevel 2>/dev/null)
+    ret=$?
+    if [ $ret -ne 0 ]
+    then
+        echo ""
+        return
+    fi
+
+    cd "$workspace"
     files=$($git ls-files 2>/dev/null | wc -l)
     if [ $files -gt 10000 ]
     then
         echo "[%{$fg_bold[grey]%}$(git_prompt_info)%{$reset_color%}]"
         return
     fi
-    st=$($git status 2>/dev/null)
+    st=$($git diff --shortstat 2>/dev/null)
     if [[ $st == "" ]]
     then
-        echo ""
-        return
-    fi
-    st=$($git status 2>/dev/null | tail -n 1)
-    if [[ $st == "" ]]
-    then
-        echo "[%{$fg_bold[yellow]%}$(git_prompt_info)%{$reset_color%}]"
-    else
-        if [[ "$st" =~ ^nothing ]]
+        st=$($git diff HEAD --shortstat 2>/dev/null)
+        ret=$?
+        if [[ "$st" == "" ]]
         then
-            echo "[%{$fg_bold[green]%}$(git_prompt_info)%{$reset_color%}]"
+            if [ $ret -eq 0 ]
+            then
+                echo "[%{$fg_bold[green]%}$(git_prompt_info)%{$reset_color%}]"
+            else
+                st=$($git status 2>/dev/null | tail -n 1)
+                if [[ "$st" =~ ^nothing ]]
+                then
+                    echo "[%{$fg_bold[green]%}$(git_prompt_info)%{$reset_color%}]"
+                else
+                    echo "[%{$fg_bold[yellow]%}$(git_prompt_info)%{$reset_color%}]"
+                fi
+            fi
         else
-            echo "[%{$fg_bold[red]%}$(git_prompt_info)%{$reset_color%}]"
+            echo "[%{$fg_bold[yellow]%}$(git_prompt_info)%{$reset_color%}]"
         fi
+    else
+        echo "[%{$fg_bold[red]%}$(git_prompt_info)%{$reset_color%}]"
     fi
 }
 
 git_prompt_info () {
-    ref=$($git symbolic-ref HEAD 2>/dev/null) || return
+    local ref
+    ref=$($git symbolic-ref HEAD 2>/dev/null)
+    if [ $? -ne 0 ]
+    then
+        echo "$($git rev-parse --short HEAD)"
+        return
+    fi
     echo "${ref#refs/heads/}"
 }
 
@@ -63,11 +89,16 @@ function collapse_pwd {
     echo "%{$fg[yellow]%}$(pwd | sed -e "s,^$HOME,~,")%{$reset_color%}"
 }
 
-local USER_PROMPT="%{$fg_bold[red]%}%n%{$reset_color%}"
-local HOST_PROMPT="%{$fg_bold[blue]%}%m%{$reset_color%}"
-local TTY_PROMPT="[%{$fg_no_bold[magenta]%}%l%{$reset_color%}]"
-local DATETIME_PROMPT="[%{$fg[cyan]%}%w %t%{$reset_color%}]"
-local RETCODE_PROMPT="[%{$fg_no_bold[yellow]%}%?%{$reset_color%}]"
+local USER_PROMPT
+local HOST_PROMPT
+local TTY_PROMPT
+local DATETIME_PROMPT
+local RETCODE_PROMPT
+USER_PROMPT="%{$fg_bold[red]%}%n%{$reset_color%}"
+HOST_PROMPT="%{$fg_bold[blue]%}%m%{$reset_color%}"
+TTY_PROMPT="[%{$fg_no_bold[magenta]%}%l%{$reset_color%}]"
+DATETIME_PROMPT="[%{$fg[cyan]%}%w %t%{$reset_color%}]"
+RETCODE_PROMPT="[%{$fg_no_bold[yellow]%}%?%{$reset_color%}]"
 
 PROMPT=$'\n${USER_PROMPT}@${HOST_PROMPT} on ${TTY_PROMPT} in $(collapse_pwd) $(git_dirty) $(need_push)\n${DATETIME_PROMPT} %#> '
 RPROMPT=$'${RETCODE_PROMPT}'

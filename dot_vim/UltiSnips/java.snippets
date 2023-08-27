@@ -1,0 +1,202 @@
+global !p
+def get_login_name():
+  import os
+  return os.getlogin()
+
+def get_date():
+  from datetime import datetime
+  return datetime.strftime(datetime.now(), '%Y-%m-%d')
+
+def gen_package_string(file_path):
+  main_path = 'src/main/java'
+  test_path = 'src/test/java'
+  pos = file_path.find(main_path)
+  if pos != -1:
+    file_path = file_path[pos + len(main_path):]
+  else:
+    pos = file_path.find(test_path)
+    if pos != -1:
+      file_path = file_path[pos + len(test_path):]
+  return '.'.join(file_path.split('/')[:-1])[1:]
+
+def doc_with_author_snippet(args_idx):
+  return (
+    args_idx + 4,
+    '\n'.join([
+      '/**',
+      ' * ${{{}}}',
+      ' *${{{}: <p>',
+      ' * ${{{}}}',
+      ' *}}',
+      ' * @author ${{{}:{}}}',
+      ' * @since {}',
+      ' */',
+      ''
+    ]).format(
+      args_idx,
+      args_idx + 1,
+      args_idx + 2,
+      args_idx + 3,
+      get_login_name(),
+      get_date(),
+    )
+  )
+
+def gen_class(snip):
+  import os
+
+  line_content = snip.buffer[snip.line]
+  snip.buffer[snip.line] = ' ' * (len(line_content) - len(line_content.lstrip()))
+  items = line_content.strip().split(':', 1)
+  type = items[0]
+  path = items[1]
+  snippet = ''
+  (args_idx, doc_snippet) = doc_with_author_snippet(1)
+  if snip.line == 0:
+    package = gen_package_string(path)
+    snippet += f'package {package};\n\n'
+  annotations = ''
+  if type.startswith('se'):
+    annotations = '\n'.join(['@Slf4j', '@Service'])
+    snippet += '\n'.join([
+        'import lombok.extern.slf4j.Slf4j;',
+        'import org.springframework.stereotype.Service;',
+      ])
+  elif type.startswith('conf'):
+    annotations = '\n'.join(['@Configuration'])
+    snippet += '\n'.join([
+        'import org.springframework.context.annotation.Configuration;',
+      ])
+  elif type.startswith('com'):
+    annotations = '\n'.join(['@Slf4j', '@Component'])
+    snippet += '\n'.join([
+        'import lombok.extern.slf4j.Slf4j;',
+        'import org.springframework.stereotype.Component;',
+      ])
+  elif type.startswith('cont'):
+    annotations = '\n'.join(['@Slf4j', '@RestController', f'@RequestMapping(${{{args_idx}:"/v1"}})'])
+    args_idx += 1
+    snippet += '\n'.join([
+        'import lombok.extern.slf4j.Slf4j;',
+        'import org.springframework.web.bind.annotation.RequestMapping;',
+        'import org.springframework.web.bind.annotation.RestController;',
+      ])
+  elif type.startswith('en'):
+    annotations = '\n'.join(['@Data', '@AllArgsConstructor', '@Builder', '@TableName(autoResultMap = true)'])
+    snippet += '\n'.join([
+        'import com.baomidou.mybatisplus.annotation.FieldStrategy;',
+        'import com.baomidou.mybatisplus.annotation.IdType;',
+        'import com.baomidou.mybatisplus.annotation.TableField;',
+        'import com.baomidou.mybatisplus.annotation.TableId;',
+        'import com.baomidou.mybatisplus.annotation.TableName;',
+        'import lombok.AllArgsConstructor;',
+        'import lombok.Builder;',
+        'import lombok.Data;',
+      ])
+  elif type == 'raw':
+    pass
+  else:
+    annotations = '\n'.join(['@Data', '@Builder', '@Jacksonized'])
+    snippet += '\n'.join([
+        'import lombok.Builder;',
+        'import lombok.Data;',
+        'import lombok.extern.jackson.Jacksonized;',
+      ])
+  if len(annotations) > 0:
+    annotations += '\n'
+  snippet += '\n\n'
+  snippet += doc_snippet
+  snippet += '\n'.join([
+      '{}public class ${{{}:{}}} ${{{}:extends ${{{}:{}}} }}${{{}:implements ${{{}:{}}} }}{{',
+      '    $0',
+      '}}'
+    ]).format(
+      annotations,
+      args_idx,
+      os.path.basename(path).split('.')[0] or "Untitled",
+      args_idx + 1,
+      args_idx + 2,
+      'Parent',
+      args_idx + 3,
+      args_idx + 4,
+      'Interface',
+    )
+  snip.expand_anon(snippet)
+
+def gen_interface(snip):
+  import os
+
+  line_content = snip.buffer[snip.line]
+  snip.buffer[snip.line] = ' ' * (len(line_content) - len(line_content.lstrip()))
+  items = line_content.strip().split(':', 1)
+  type = items[0]
+  path = items[1]
+  snippet = ''
+  (args_idx, doc_snippet) = doc_with_author_snippet(1)
+  if snip.line == 0:
+    package = gen_package_string(path)
+    snippet += f'package {package};\n\n'
+  annotations = ''
+  parent_snippet = '${{{}:Parent}}'
+  if type.startswith('ma'):
+    annotations = '\n'.join(['@Repository'])
+    snippet += '\n'.join([
+        'import com.baomidou.mybatisplus.core.mapper.BaseMapper;',
+        'import org.springframework.stereotype.Repository;',
+      ])
+    parent_snippet = 'BaseMapper<${{{}:Entity}}>'
+    snippet += '\n\n'
+  if len(annotations) > 0:
+    annotations += '\n'
+  snippet += doc_snippet
+  snippet += '\n'.join([
+      '{}public interface ${{{}:{}}} ${{{}:extends ' + parent_snippet + ' }}{{',
+      '    $0',
+      '}}'
+    ]).format(
+      annotations,
+      args_idx,
+      os.path.basename(path).split('.')[0] or "Untitled",
+      args_idx + 1,
+      args_idx + 2,
+    )
+  snip.expand_anon(snippet)
+
+endglobal
+
+snippet pad "Package with full path" b
+package `!p
+# snip.rv is UltiSnips' return value we want to paste between
+snip.rv = gen_package_string(path)`;
+
+endsnippet
+
+snippet authordoc "Doc with author" b
+/**
+ * ${1}
+ * ${2:<p>
+ * ${3}}
+ * @author ${4:`!p snip.rv = get_login_name()`}
+ * @since `!p snip.rv = get_date()`
+ */
+endsnippet
+
+post_jump "gen_class(snip)"
+snippet "gcl" "new class" br
+`!p snip.rv = ':' + path`
+endsnippet
+
+post_jump "gen_class(snip)"
+snippet "gcl(\w+)" "new class with type" br
+`!p snip.rv = match.group(1) + ':' + path`
+endsnippet
+
+post_jump "gen_interface(snip)"
+snippet "gif" "new interface" br
+`!p snip.rv = ':' + path`
+endsnippet
+
+post_jump "gen_interface(snip)"
+snippet "gif(\w+)" "new interface with type" br
+`!p snip.rv = match.group(1) + ':' + path`
+endsnippet
