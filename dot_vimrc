@@ -74,6 +74,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'tpope/vim-unimpaired'
 " debugger plugin
 Plug 'puremourning/vimspector'
+" Aligning Text
+Plug 'godlygeek/tabular'
 
 function! Cond(cond, ...)
     let opts = get(a:000, 0, {})
@@ -396,6 +398,8 @@ let g:formatters_xml = ['xmlfmt']
 let g:formatdef_jsonfmt = "'jq'"
 let g:formatters_json = ['jsonfmt']
 let g:formatters_python = ['black']
+let g:formatdef_markdownfmt = "'prettier --parser markdown --stdin'"
+let g:formatters_markdown = ['markdownfmt']
 " To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
 let g:autoformat_autoindent = 0
 let g:autoformat_retab = 0
