@@ -53,7 +53,7 @@ lgsg() {
 
 bgsg() {
     local file
-    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && bat "${file}" || return 1
+    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && bat "$@" "${file}" || return 1
 }
 
 vgsg() {
@@ -190,7 +190,7 @@ The command should be run like:
 
         run() {
             set -e
-            local dst_path="$1"
+            local dst_path=$(cd $(dirname "$1"); pwd)/$(basename "$1")
             # absolute path
             local ftl_template_path=$(cd $(dirname "$2"); pwd)/$(basename "$2")
             local src
@@ -209,10 +209,15 @@ The command should be run like:
                     continue
                 fi
                 echo "generating oss licenses of $src_path to $dst_path"
-                local service_name=$(basename "$src_path")
-                if [ -f "${dst_path}/${service_name}/pom.xml" ]
+                local actual_src_path="${src_path}/"
+                local sub_path=$(echo "$src" | cut -d: -f4 -s)
+                if [ -n "$sub_path" ]
                 then
-                    (cd "$src_path"; mvn license:add-third-party "$template_param" && cat target/generated-sources/license/THIRD-PARTY.txt >> "$dst_path")
+                    actual_src_path="${src_path}$sub_path"
+                fi
+                if [ -f "${actual_src_path}pom.xml" ]
+                then
+                    (cd "$actual_src_path"; mvn license:add-third-party "$template_param" && cat target/generated-sources/license/THIRD-PARTY.txt >> "$dst_path")
                 fi
             done
             sort "$dst_path" > "${dst_path}.tmp"
