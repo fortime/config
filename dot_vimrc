@@ -1,10 +1,21 @@
 call plug#begin()
 
 " Bundle
-" For vim plugins management
-"Plug 'gmarik/vundle'
 " For smart completion
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --java-completer --js-completer --clang-completer --system-libclang' }
+"" Languages
+" For Rust
+Plug 'rust-lang/rust.vim'
+" For css syntax bugs fix
+Plug 'hail2u/vim-css-syntax'
+" For css3 syntax
+Plug 'hail2u/vim-css3-syntax'
+" JavaScript
+"Plug 'pangloss/vim-javascript'
+Plug 'othree/yajs.vim'
+Plug 'othree/es.next.syntax.vim'
+" For cpp enhanced syntax highlight
+Plug 'octol/vim-cpp-enhanced-highlight'
 " For ycm listing diagnostic message
 Plug 'Valloric/ListToggle'
 " For syntax diagnosting
@@ -26,12 +37,6 @@ Plug 'Matt-Stevens/vim-systemd-syntax'
 " For colorscheme
 Plug 'gmoe/vim-espresso'
 Plug 'NLKNguyen/papercolor-theme'
-" For css syntax bugs fix
-Plug 'hail2u/vim-css-syntax'
-" For css3 syntax
-Plug 'hail2u/vim-css3-syntax'
-" For cpp enhanced syntax highlight
-Plug 'octol/vim-cpp-enhanced-highlight'
 " For cpp enhanced syntax highlight using libclang
 "Plug 'bbchung/clighter'
 " Snip
@@ -40,8 +45,6 @@ Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets'
 " Ansible yaml syntax
 "Plug 'chase/vim-ansible-yaml'
-" Use shell to run the conent of current buffer
-Plug 'JarrodCTaylor/vim-shell-executor'
 " Pretty status line
 Plug 'bling/vim-airline'
 " vim-airline-themes
@@ -50,10 +53,6 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'ntpeters/vim-better-whitespace'
 " Git
 "Plug 'airblade/vim-gitgutter'
-" JavaScript
-"Plug 'pangloss/vim-javascript'
-Plug 'othree/yajs.vim'
-Plug 'othree/es.next.syntax.vim'
 " AsyncRun
 Plug 'skywind3000/asyncrun.vim'
 " Visual Increment
@@ -223,6 +222,11 @@ let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
 let g:ycm_goto_buffer_command = 'split-or-existing-window'
 " reuse workspace
 let g:ycm_java_jdtls_use_clean_workspace = 0
+" unlimited candidate
+let g:ycm_max_num_candidates = 0
+let g:ycm_max_num_candidates_to_detail = 10
+" show completion in comment
+let g:ycm_complete_in_comments = 1
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
