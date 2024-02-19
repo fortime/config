@@ -1,0 +1,60 @@
+#! /bin/bash
+
+print_help() {
+    [ -z "$1" ] || echo "$1" >&2
+    echo -e "
+The command should be run like:
+gen_oss_licenses <dst_path> [ftl_template_path [src-path]]" >&2
+    exit 1
+}
+
+run() {
+    set -e
+    local dst_path ftl_template_path src template_param src_path service_name
+    dst_path="$1"
+    # absolute path
+    ftl_template_path=$(cd $(dirname "$2"); pwd)/$(basename "$2")
+    cat /dev/null > "$dst_path"
+    template_param=""
+    if [ -n "$ftl_template_path" ]
+    then
+        template_param="-Dlicense.fileTemplate=$ftl_template_path"
+    fi
+    while read src
+    do
+        src_path=$(echo "$src" | cut -d: -f1)
+        if [ ! -d "$src_path" ]
+        then
+            echo "$src_path not exist"
+            continue
+        fi
+        echo "generating oss licenses of $src_path to $dst_path"
+        service_name=$(basename "$src_path")
+        if [ -f "${dst_path}/${service_name}/pom.xml" ]
+        then
+            (cd "$src_path"; mvn license:add-third-party "$template_param" && cat target/generated-sources/license/THIRD-PARTY.txt >> "$dst_path")
+        fi
+    done
+    sort "$dst_path" > "${dst_path}.tmp"
+    uniq "${dst_path}.tmp" > "$dst_path"
+    rm "${dst_path}.tmp"
+}
+
+local dst_path src_path ftl_template_path
+
+dst_path="$1"
+ftl_template_path="$2"
+src_path="$3"
+if [ -z "$dst_path" ]
+then
+    print_help "The destination path should be provided!"
+    exit 1
+fi
+if [ -n "$src_path" ]
+then
+    run "$dst_path" "$ftl_template_path" <<EOF
+$src_path
+EOF
+else
+    run "$dst_path" "$ftl_template_path"
+fi

@@ -1,0 +1,276 @@
+#! /bin/bash
+
+check_vm_name() {
+    local vm_name
+    vm_name=$1
+    if [ -z "$vm_name" ]
+    then
+        echo "please run this script as: qemu-wrapper COMMAND VM_NAME [OPTIONS]" >&2
+        exit 1
+    fi
+
+    trimmed_vm_name=$(echo -n "$vm_name" | sed 's/[^0-9a-zA-Z_-]//g' | head -1)
+    if [ "$vm_name" != "$trimmed_vm_name" ]
+    then
+        echo "VM_NAME[${vm_name}] invalid characters, allowd: 0-9a-zA-Z_-" >&2
+        exit 1
+    fi
+}
+
+create() {
+    local size
+    size=$1
+
+    if [ -z "$size" ]
+    then
+        size=20G
+    fi
+
+    # create a hard disk
+    qemu-img create -f qcow2 disk.qcow2 "$size"
+
+    # create an empty file for persisting UEFI variables
+    dd if=/dev/zero conv=sync bs=1M count=4 of=ovmf_vars.fd
+}
+
+create_bridge() {
+    local name res gateway
+    name="$1"
+    res=$(ip link show $name >/dev/null 2>&1 || echo no)
+    if [ "$res" = "no" ]
+    then
+        sudo ip link add name $name type bridge
+    fi
+    sudo ip link set dev $name up
+
+    gateway=10.101.0.1/32
+    subnet=10.101.0.0/24
+    res=$(ip address show dev $name | grep "$gateway " || echo no)
+    if [ "$res" = "no" ]
+    then
+        sudo ip address add $gateway dev $name
+    fi
+    res=$(ip route list | grep "$subnet " || echo no)
+    if [ "$res" = "no" ]
+    then
+        sudo ip route add $subnet via ${gateway/\/*/} dev $name
+    fi
+}
+
+start() {
+    local serial_port hostfwds volume_idx virtfs_params volumes volume found no_serial no_gui additional_params memory_param net_param vmnet_param cdrom_params param sudo_cmd arch kernel qemu_system_cmd
+
+    arch=$(uname -m)
+    case "$arch" in
+        "arm64")
+            qemu_system_cmd=qemu-system-aarch64
+            ;;
+        "x86_64")
+            qemu_system_cmd=qemu-system-x86_64
+            ;;
+        *)
+            echo "unsupported arch: $arch">&2
+            ;;
+    esac
+    kernel=$(uname -s)
+
+    serial_port=4444
+    if [ "$1" = "-d" ]
+    then
+        shift
+        serial_port=""
+    fi
+
+    if [ -f ".env" ]
+    then
+        source .env
+    fi
+    if [ -n "$hostfwds" ]
+    then
+        hostfwds=",$hostfwds"
+    fi
+
+    volume_idx=0
+    virtfs_params=()
+    for volume in "${volumes[@]}"
+    do
+        if [ -n "$volume" ]
+        then
+            virtfs_params=("${virtfs_params[@]}" -virtfs local,path="$volume",mount_tag="vol${volume_idx}",security_model=none)
+        fi
+        let volume_idx=$volume_idx+1
+    done
+
+    found=false
+    no_serial=false
+    no_gui=false
+    additional_params=()
+    memory_param="${mem:-1024M}"
+    net_param="-device virtio-net-pci,netdev=net0 -netdev user,id=net0,net=${subnet:-192.168.112.0/24},dhcpstart=${ip:-192.168.112.6}${hostfwds}"
+    vmnet_param=""
+    cdrom_params=()
+    while [ -n "$1" ]
+    do
+        param="$1"
+        if [ "$found" = "true" ]
+        then
+            additional_params=("${additional_params[@]}" "$param")
+        elif [ "$param" = "--" ]
+        then
+            found="true"
+        else
+            case "$param" in
+                "--hostfwd")
+                    shift
+                    if [ -n "$net_param" ]
+                    then
+                        net_param="$net_param,hostfwd=$1"
+                    fi
+                    ;;
+                "--mem")
+                    shift
+                    memory_param="$1"
+                    ;;
+                "--console")
+                    no_serial=true
+                    ;;
+                "--no-gui")
+                    no_gui=true
+                    ;;
+                "--iso")
+                    shift
+                    cdrom_params=(-drive "file=${1},if=none,media=cdrom,id=cd" -device virtio-scsi-pci -device scsi-cd,drive=cd)
+                    ;;
+                "--net-shared")
+                    if [ "$kernel" = "Darwin" ]
+                    then
+                        vmnet_param="-nic vmnet-shared,mac=$mac"
+                    else
+                        create_bridge virbr0
+                        net_param="$net_param -nic bridge,br=virbr0,model=virtio-net-pci,mac=$mac"
+                    fi
+                    ;;
+                "--net-bridged")
+                    shift
+                    if [ "$kernel" = "Darwin" ]
+                    then
+                        vmnet_param="-nic vmnet-bridged,mac=$mac,ifname=$1"
+                    else
+                        create_bridge virbr0
+                        sudo ip link set $1 master virbr0
+                        net_param="-nic bridge,br=virbr0,model=virtio-net-pci,mac=$mac"
+                    fi
+                    ;;
+                *)
+                    ;;
+            esac
+        fi
+        shift
+    done
+    params=(-m $memory_param)
+    if [ "$arch" = "arm64" -a "$kernel" = "Darwin" ]
+    then
+        params=("${params[@]}" -accel hvf -cpu cortex-a57 -M virt,highmem=off)
+        params=("${params[@]}" -drive file=/opt/homebrew/share/qemu/edk2-aarch64-code.fd,if=pflash,format=raw,readonly=on)
+    fi
+    if [ "$arch" = "x86_64" -a "$kernel" = "Linux" ]
+    then
+        params=("${params[@]}" -accel kvm -cpu host)
+        params=("${params[@]}" -drive file=/usr/share/edk2/x64/OVMF_CODE.4m.fd,if=pflash,format=raw,readonly=on)
+    fi
+    params=("${params[@]}" -drive file=ovmf_vars.fd,if=pflash,format=raw)
+    params=("${params[@]}" "${cdrom_params[@]}")
+    params=("${params[@]}" -drive file=disk.qcow2,format=qcow2)
+    params=("${params[@]}" -device usb-ehci -device usb-kbd -device usb-mouse -usb)
+    params=("${params[@]}" -vga none -device ramfb)
+    params=("${params[@]}" $(echo $net_param))
+    params=("${params[@]}" $(echo $vmnet_param))
+    params=("${params[@]}" "${virtfs_params[@]}")
+
+    sudo_cmd=""
+    if [ -n "$vmnet_param" ]
+    then
+        sudo_cmd=sudo
+    fi
+
+    if [ -z "$serial_port" ]
+    then
+        params=("${params[@]}" -qmp unix:/$(pwd)/sys.sock,server=on,wait=off)
+    else
+        if [ "$no_serial" = "false" ]
+        then
+            params=("${params[@]}" -serial telnet::$serial_port,server,nowait -monitor stdio)
+        fi
+    fi
+    if [ "$no_gui" = "true" ]
+    then
+        params=("${params[@]}" -nographic)
+    fi
+    params=("${params[@]}" "${additional_params[@]}")
+
+    $sudo_cmd $qemu_system_cmd "${params[@]}"
+}
+
+set -e
+
+local workspace vm_name trimmed_vm_name command
+
+workspace=${QEMU_WRAPPER_WORKSPACE:-"${HOME}/.local/share/qemu-wrapper"}
+
+command=$1
+vm_name=$2
+case "$command" in
+    "list")
+        ls -1 ${workspace}
+        ;;
+    "pwd")
+        echo ${workspace}
+        ;;
+    "create")
+        check_vm_name "${vm_name}"
+        shift 2
+        if [ -d "${workspace}/${vm_name}" ]
+        then
+            echo "vm exists: ${workspace}/${vm_name}" >&2
+            exit 3
+        fi
+
+        mkdir -p "${workspace}/${vm_name}"
+
+        cd "${workspace}/${vm_name}"
+
+        create "$@"
+        echo "$vm_name created!"
+        ;;
+    "start")
+        check_vm_name "${vm_name}"
+        shift 2
+        if [ ! -d "${workspace}/${vm_name}" ]
+        then
+            echo "vm not exists: ${vm_name}" >&2
+            exit 2
+        fi
+
+        local first daemon
+
+        cd "${workspace}/${vm_name}"
+        first=$1
+        daemon=false
+        if [ "$first" = "-d" ]
+        then
+            daemon=true
+        fi
+
+        if [ "$daemon" = "true" ]
+        then
+            start "$@" 2>&1 >/dev/null &
+            disown
+        else
+            start "$@"
+        fi
+        ;;
+    *)
+        echo "unsupported command: $command" >&2
+        exit 1
+        ;;
+esac

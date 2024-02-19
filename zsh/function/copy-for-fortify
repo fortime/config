@@ -1,0 +1,88 @@
+#! /bin/bash
+
+print_help() {
+    [ -z "$1" ] || echo "$1" >&2
+    echo -e "
+The command should be run like:
+copy_for_fortify <dst-path> [src-path[:src-tree-ish]]" >&2
+    exit 1
+}
+
+run() {
+    set -e
+    local dst_path src
+    dst_path="$1"
+    [ -d "$dst_path" ] && rm -r "$dst_path"
+    mkdir -p "$dst_path"
+    while read src
+    do
+        local src_path src_tree_ish default_service_name service_name sub_path
+        src_path=$(echo "$src" | cut -d: -f1)
+        if [ ! -d "$src_path" ]
+        then
+            echo "$src_path not exist"
+            continue
+        fi
+        src_tree_ish=$(echo "$src" | cut -d: -f2 -s)
+        if [ -z "$src_tree_ish" ]
+        then
+            src_tree_ish=HEAD
+        fi
+        echo "copying $src_path:$src_tree_ish to $dst_path"
+        default_service_name=$(basename "$src_path")
+        service_name=$(echo "$src" | cut -d: -f3 -s)
+        if [ -z "$service_name" ]
+        then
+            service_name=$default_service_name
+        fi
+        sub_path=$(echo "$src" | cut -d: -f4 -s)
+        if [ -z "$sub_path" ]
+        then
+            (
+                cd "$src_path";
+                git fetch;
+                git archive --format=tar --prefix="$service_name/" "$src_tree_ish" | (cd "$dst_path" && tar xf -)
+            )
+        else
+            (
+                cd "$src_path";
+                git fetch;
+                cd "$sub_path";
+                git archive --format=tar --prefix="$service_name/" "$src_tree_ish" | (cd "$dst_path" && tar xf -)
+            )
+        fi
+        [ -d "${dst_path}/${service_name}/src/test" ] && rm -r "${dst_path}/${service_name}/src/test"
+        [ -d "${dst_path}/${service_name}/src/main/resources/i18n" ] && rm -r "${dst_path}/${service_name}/src/main/resources/i18n"
+        find "${dst_path}/${service_name}" -name "application-*" -delete
+        find "${dst_path}/${service_name}" -name "bootstrap-*" -delete
+        find "${dst_path}/${service_name}" -name "logback-*" -delete
+        find "${dst_path}/${service_name}" -name "log4j2-*" -delete
+        find "${dst_path}/${service_name}" -name "Dockerfile" -delete
+        find "${dst_path}/${service_name}" -name "dockerfile" -delete
+        find "${dst_path}/${service_name}" -name "MybatisGenerator.java" -delete
+        find "${dst_path}/${service_name}" -name "application.yaml" -exec sed -I "" '/login-username: admin/d;/login-password/d;/ssl:/N;/ssl:\n[^a-zA-Z0-9]*enabled: false/d' {} \;
+        find "${dst_path}/${service_name}" -name "bootstrap.yaml" -exec sed -I "" '/password/d;/username/d;' {} \;
+        if [ -f "${dst_path}/${service_name}/pom.xml" ]
+        then
+            (cd "${dst_path}/${service_name}"; mkdir libs; mvn org.apache.maven.plugins:maven-dependency-plugin:copy-dependencies -DincludeScope=compile -DoutputDirectory=libs -Dmdep.failOnMissingClassifierArtifact=false -DincludeGroupIds=com.sensetime.arcloud)
+        fi
+        (cd "${dst_path}/"; zip -rq "${service_name}.zip" "${service_name}")
+    done
+}
+
+local dst_path src_path
+dst_path="$1"
+src_path="$2"
+if [ -z "$dst_path" ]
+then
+    print_help "The destination path should be provided!"
+    exit 1
+fi
+if [ -n "$src_path" ]
+then
+    run "$dst_path" <<EOF
+$src_path
+EOF
+else
+    run "$dst_path"
+fi
