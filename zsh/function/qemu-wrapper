@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# start an linux in current stdio: --no-gui --console, then add console=ttyS0 to kernel
+
 check_vm_name() {
     local vm_name
     vm_name=$1
