@@ -6,7 +6,7 @@ gbkunzip() {
 
             filename=$(basename $1)
             tmp_dir="${filename}_dir"
-            LANG=C 7za x -o"$tmp_dir" "$1"
+            LC_ALL=C LANG=C 7z x -o"$tmp_dir" "$1"
             if [ "$?" != 0 ]
             then
                 echo "unzip $1 failed!" >&2
@@ -74,7 +74,7 @@ lgsg() {
 
 bgsg() {
     local file
-    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && bat "${file}" || return 1
+    file="$(git ls-files --recurse-submodules | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && bat "$@" "${file}" || return 1
 }
 
 vgsg() {
