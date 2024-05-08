@@ -57,14 +57,14 @@ run() {
         find "${dst_path}/${service_name}" -name "bootstrap-*" -delete
         find "${dst_path}/${service_name}" -name "logback-*" -delete
         find "${dst_path}/${service_name}" -name "log4j2-*" -delete
-        find "${dst_path}/${service_name}" -name "Dockerfile" -delete
-        find "${dst_path}/${service_name}" -name "dockerfile" -delete
+        find "${dst_path}/${service_name}" -name "Dockerfile*" -delete
+        find "${dst_path}/${service_name}" -name "dockerfile*" -delete
         find "${dst_path}/${service_name}" -name "MybatisGenerator.java" -delete
         find "${dst_path}/${service_name}" -name "application.yaml" -exec sed -I "" '/login-username: admin/d;/login-password/d;/ssl:/N;/ssl:\n[^a-zA-Z0-9]*enabled: false/d' {} \;
         find "${dst_path}/${service_name}" -name "bootstrap.yaml" -exec sed -I "" '/password/d;/username/d;' {} \;
         if [ -f "${dst_path}/${service_name}/pom.xml" ]
         then
-            (cd "${dst_path}/${service_name}"; mkdir libs; mvn org.apache.maven.plugins:maven-dependency-plugin:copy-dependencies -DincludeScope=compile -DoutputDirectory=libs -Dmdep.failOnMissingClassifierArtifact=false -DincludeGroupIds=com.sensetime.arcloud)
+            (cd "${dst_path}/${service_name}"; mkdir libs; mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy-dependencies -DincludeScope=runtime -DoutputDirectory=libs -Dmdep.addParentPoms=true -Dmdep.copyPom=true -Dmdep.failOnMissingClassifierArtifact=false -DincludeGroupIds=$INCLUDE_GROUP_IDS)
         fi
         (cd "${dst_path}/"; zip -rq "${service_name}.zip" "${service_name}")
     done
