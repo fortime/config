@@ -60,7 +60,7 @@ create_bridge() {
 }
 
 start() {
-    local serial_port hostfwds volume_idx virtfs_params volumes volume found no_serial no_gui additional_params memory_param net_param vmnet_param cdrom_params param sudo_cmd arch kernel qemu_system_cmd
+    local daemon_mode text_mode serial_port hostfwds volume_idx virtfs_params volumes volume found no_gui additional_params memory_param net_param bridge_net_param need_sudo cdrom_params param sudo_cmd arch kernel qemu_system_cmd smp_param
 
     arch=$(uname -m)
     case "$arch" in
@@ -76,17 +76,17 @@ start() {
     esac
     kernel=$(uname -s)
 
-    serial_port=4444
-    if [ "$1" = "-d" ]
-    then
-        shift
-        serial_port=""
-    fi
-
     if [ -f ".env" ]
     then
         source .env
     fi
+
+    if [ "$1" = "-d" ]
+    then
+        shift
+        daemon_mode="true"
+    fi
+
     if [ -n "$hostfwds" ]
     then
         hostfwds=",$hostfwds"
@@ -104,18 +104,22 @@ start() {
     done
 
     found=false
-    no_serial=false
     no_gui=false
     additional_params=()
     memory_param="${mem:-1024M}"
     net_param="-device virtio-net-pci,netdev=net0 -netdev user,id=net0,net=${subnet:-192.168.112.0/24},dhcpstart=${ip:-192.168.112.6}${hostfwds}"
-    vmnet_param=""
+    bridge_net_param=""
+    need_sudo=false
     cdrom_params=()
     while [ -n "$1" ]
     do
         param="$1"
         if [ "$found" = "true" ]
         then
+            if [ "$param" = "-smp" ]
+            then
+                smp_param=""
+            fi
             additional_params=("${additional_params[@]}" "$param")
         elif [ "$param" = "--" ]
         then
@@ -133,8 +137,8 @@ start() {
                     shift
                     memory_param="$1"
                     ;;
-                "--console")
-                    no_serial=true
+                "--text-mode")
+                    text_mode=true
                     ;;
                 "--no-gui")
                     no_gui=true
@@ -146,22 +150,29 @@ start() {
                 "--net-shared")
                     if [ "$kernel" = "Darwin" ]
                     then
-                        vmnet_param="-nic vmnet-shared,mac=$mac"
+                        bridge_net_param="-nic vmnet-shared,mac=$shared_mac"
+                        need_sudo=true
                     else
                         create_bridge virbr0
-                        net_param="$net_param -nic bridge,br=virbr0,model=virtio-net-pci,mac=$mac"
+                        bridge_net_param="-nic bridge,br=virbr0,model=virtio-net-pci,mac=$shared_mac"
                     fi
                     ;;
                 "--net-bridged")
                     shift
                     if [ "$kernel" = "Darwin" ]
                     then
-                        vmnet_param="-nic vmnet-bridged,mac=$mac,ifname=$1"
+                        bridge_net_param="-nic vmnet-bridged,mac=$bridged_mac,ifname=$1"
+                        need_sudo=true
                     else
                         create_bridge virbr0
                         sudo ip link set $1 master virbr0
-                        net_param="-nic bridge,br=virbr0,model=virtio-net-pci,mac=$mac"
+                        bridge_net_param="-nic bridge,br=virbr0,model=virtio-net-pci,mac=$bridged_mac"
                     fi
+                    # when --net-bridged is used, the vm can connect to the Internet, there is no need to use net_param.
+                    net_param=""
+                    ;;
+                "--legacy-qemu")
+                    legacy_qemu=true
                     ;;
                 *)
                     ;;
@@ -170,39 +181,67 @@ start() {
         shift
     done
     params=(-m $memory_param)
+    if [ -n "$smp_param" ]
+    then
+        params=("${params[@]}" -smp "$smp_param")
+    fi
+    ovmf_file=""
     if [ "$arch" = "arm64" -a "$kernel" = "Darwin" ]
     then
-        params=("${params[@]}" -accel hvf -cpu cortex-a57 -M virt,highmem=off)
-        params=("${params[@]}" -drive file=/opt/homebrew/share/qemu/edk2-aarch64-code.fd,if=pflash,format=raw,readonly=on)
+        params=("${params[@]}" -accel hvf -cpu host -M virt)
+        ovmf_file=/opt/homebrew/share/qemu/edk2-aarch64-code.fd
     fi
     if [ "$arch" = "x86_64" -a "$kernel" = "Linux" ]
     then
         params=("${params[@]}" -accel kvm -cpu host)
-        params=("${params[@]}" -drive file=/usr/share/edk2/x64/OVMF_CODE.4m.fd,if=pflash,format=raw,readonly=on)
+        ovmf_file=/usr/share/edk2/x64/OVMF_CODE.4m.fd
     fi
+    if [ -n "$QEMU_WRAPPER_OVMF_FILE" ]
+    then
+        ovmf_file="$QEMU_WRAPPER_OVMF_FILE"
+    fi
+    params=("${params[@]}" -drive file="$ovmf_file",if=pflash,format=raw,readonly=on)
     params=("${params[@]}" -drive file=ovmf_vars.fd,if=pflash,format=raw)
     params=("${params[@]}" "${cdrom_params[@]}")
     params=("${params[@]}" -drive file=disk.qcow2,format=qcow2)
     params=("${params[@]}" -device usb-ehci -device usb-kbd -device usb-mouse -usb)
-    params=("${params[@]}" -vga none -device ramfb)
+    if [ "$legacy_qemu" = "true" ]
+    then
+        params=("${params[@]}" -vga none)
+    else
+        params=("${params[@]}" -vga none -device ramfb)
+    fi
     params=("${params[@]}" $(echo $net_param))
-    params=("${params[@]}" $(echo $vmnet_param))
+    params=("${params[@]}" $(echo $bridge_net_param))
     params=("${params[@]}" "${virtfs_params[@]}")
 
     sudo_cmd=""
-    if [ -n "$vmnet_param" ]
+    if [ "$need_sudo" = "true" ]
     then
         sudo_cmd=sudo
     fi
 
-    if [ -z "$serial_port" ]
+    if [ "$daemon_mode" = "true" ]
     then
         params=("${params[@]}" -qmp unix:/$(pwd)/sys.sock,server=on,wait=off)
     else
-        if [ "$no_serial" = "false" ]
+        if [ "$text_mode" = "true" ]
         then
-            params=("${params[@]}" -serial telnet::$serial_port,server,nowait -monitor stdio)
+            serial_port=""
+            no_gui=true
+        else
+            params=("${params[@]}" -monitor stdio)
+            if [ -z "$serial_port" ]
+            then
+                # if there is no gui and serial port for display, qemu will use stdio for display,
+                # but stdio is used for monitor. So we force qemu to use gui.
+                no_gui=false
+            fi
         fi
+    fi
+    if [ -n "$serial_port" ]
+    then
+        params=("${params[@]}" -serial telnet::$serial_port,server,nowait)
     fi
     if [ "$no_gui" = "true" ]
     then
@@ -214,8 +253,6 @@ start() {
 }
 
 set -e
-
-local workspace vm_name trimmed_vm_name command
 
 workspace=${QEMU_WRAPPER_WORKSPACE:-"${HOME}/.local/share/qemu-wrapper"}
 
@@ -253,8 +290,6 @@ case "$command" in
             exit 2
         fi
 
-        local first daemon
-
         cd "${workspace}/${vm_name}"
         first=$1
         daemon=false
@@ -270,6 +305,10 @@ case "$command" in
         else
             start "$@"
         fi
+        ;;
+    "cd")
+        cd "${workspace}"
+        $SHELL
         ;;
     *)
         echo "unsupported command: $command" >&2

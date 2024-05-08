@@ -115,5 +115,10 @@ gen-oss-licenses() {
 }
 
 qemu-wrapper() {
-    zsh ~/zsh/function/qemu-wrapper "$@"
+    if [ "$1" = "cd" ]
+    then
+        cd $(zsh ~/zsh/function/qemu-wrapper pwd)
+    else
+        zsh ~/zsh/function/qemu-wrapper "$@"
+    fi
 }
