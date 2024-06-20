@@ -1,0 +1,12 @@
+#! /bin/bash
+
+uid=$(id -u)
+storage=$1
+shift
+password_command=$1
+shift
+
+mount_point="/run/user/$(id -u)/app/rclone/$storage"
+[ -d "$mount_point" ] || mkdir -p "$mount_point"
+
+exec rclone mount --vfs-cache-mode full "${storage}:" "$mount_point" --password-command "$password_command" "$@"

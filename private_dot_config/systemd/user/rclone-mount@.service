@@ -1,0 +1,8 @@
+[Unit]
+Description=Mount a network volume with rclone
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/fortime/zsh/function/rclone-mount %i 'secret-tool lookup rclone-passwd-type main'
+Restart=on-failure

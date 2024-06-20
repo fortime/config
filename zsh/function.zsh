@@ -122,3 +122,7 @@ qemu-wrapper() {
         zsh ~/zsh/function/qemu-wrapper "$@"
     fi
 }
+
+rclone-mount() {
+    zsh ~/zsh/function/rclone-mount "$@"
+}
