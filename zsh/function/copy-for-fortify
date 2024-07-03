@@ -70,7 +70,6 @@ run() {
     done
 }
 
-local dst_path src_path
 dst_path="$1"
 src_path="$2"
 if [ -z "$dst_path" ]
