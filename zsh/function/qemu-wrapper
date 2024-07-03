@@ -1,6 +1,31 @@
 #! /bin/bash
 
-# start an linux in current stdio: --no-gui --console, then add console=ttyS0 to kernel
+# NOTES
+# 1. start an linux in current stdio: --no-gui --console, then add console=ttyS0 to kernel
+#
+# 2. use the vm as a backend of podman.
+#   > 1. `echo qemu > /etc/containers/podman-machine`
+#   > 2. `echo -e '[containers]\nnetns="bridge"' > $HOME/.config/containers/containers.conf`
+#   > 3. setup gvproxy, before starting the vm. put these codes in .env of the vm
+#   >    ```
+#   >    _setup_gvproxy() {
+#   >        # used to exposing port in host
+#   >        local gvproxy_cmd network_sock_path qemu_sock_path
+#   >        gvproxy_cmd=/opt/homebrew/Cellar/podman/$(podman --version|cut -d' ' -f3)/libexec/podman/gvproxy
+#   >        network_sock_path=$(pwd)/gvproxy-network.sock
+#   >        qemu_sock_path=$(pwd)/gvproxy-qemu.sock
+#   >        log_path=$(pwd)/gvproxy.log
+#   >        if [ ! -f "$qemu_sock_path" ]
+#   >        then
+#   >            "$gvproxy_cmd" -listen "unix://${network_sock_path}" -listen-qemu "unix://${qemu_sock_path}" >>"$log_path" 2>&1 &
+#   >        fi
+#   >        additional_params=("--" "-netdev" "stream,id=vlan,addr.type=unix,addr.path=${qemu_sock_path}" "-device" "virtio-net-pci,netdev=vlan,mac=52:54:01:12:33:56")
+#   >    }
+#   >
+#   >    _setup_gvproxy
+#   >
+#   >    set -- "$@" "$additional_params[@]"
+#   >    ```
 
 check_vm_name() {
     local vm_name
@@ -114,16 +139,16 @@ start() {
     while [ -n "$1" ]
     do
         param="$1"
-        if [ "$found" = "true" ]
+        if [ "$param" = "--" ]
+        then
+            found="true"
+        elif [ "$found" = "true" ]
         then
             if [ "$param" = "-smp" ]
             then
                 smp_param=""
             fi
             additional_params=("${additional_params[@]}" "$param")
-        elif [ "$param" = "--" ]
-        then
-            found="true"
         else
             case "$param" in
                 "--hostfwd")
@@ -204,13 +229,7 @@ start() {
     params=("${params[@]}" -drive file=ovmf_vars.fd,if=pflash,format=raw)
     params=("${params[@]}" "${cdrom_params[@]}")
     params=("${params[@]}" -drive file=disk.qcow2,format=qcow2)
-    params=("${params[@]}" -device usb-ehci -device usb-kbd -device usb-mouse -usb)
-    if [ "$legacy_qemu" = "true" ]
-    then
-        params=("${params[@]}" -vga none)
-    else
-        params=("${params[@]}" -vga none -device ramfb)
-    fi
+    params=("${params[@]}" -device usb-ehci -device usb-kbd -device usb-mouse -device usb-tablet -usb)
     params=("${params[@]}" $(echo $net_param))
     params=("${params[@]}" $(echo $bridge_net_param))
     params=("${params[@]}" "${virtfs_params[@]}")
@@ -245,7 +264,16 @@ start() {
     fi
     if [ "$no_gui" = "true" ]
     then
-        params=("${params[@]}" -nographic)
+        params=("${params[@]}" -nographic -vga none)
+        if [ "$legacy_qemu" != "true" ]
+        then
+            params=("${params[@]}" -device ramfb)
+        fi
+    else
+        if [ -n "$gui_device" ]
+        then
+            params=("${param[@]}" -device "$gui_device" -display default,show-cursor=on)
+        fi
     fi
     params=("${params[@]}" "${additional_params[@]}")
 
