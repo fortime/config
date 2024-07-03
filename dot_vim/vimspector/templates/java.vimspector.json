@@ -1,0 +1,161 @@
+{
+  "configurations": {
+    "Java Simple Launch": {
+      "adapter": "java-debugger",
+      "filetypes": [ "java" ],
+      "cwd": "${workspaceRoot}",
+      "configuration": {
+        "request": "launch",
+        "cwd": "${workspaceRoot}",
+        "mainClass": "${MainClass:$fileBasenameNoExtension}",
+        "args": "*${CommandLineArgs}",
+        "stepFilters": {
+          "skipClasses": [
+            "java.*",
+            "sun.*"
+          ]
+        },
+        "classPaths": [ "${workspaceRoot}" ],
+        "sourcePaths": [
+          "${workspaceRoot}"
+        ]
+      }
+    },
+    "Java Remote Attach": {
+      "adapter": "java-debugger",
+      "filetypes": [ "java" ],
+      "cwd": "${workspaceRoot}",
+      "configuration": {
+        "request": "attach",
+        "hostName": "${host:127.0.0.1}",
+        "port": "${port}",
+        "cwd": "${workspaceRoot}",
+        "stepFilters": {
+          "skipClasses": [
+            "java.*",
+            "sun.*"
+          ]
+        },
+        "sourcePaths": [
+          "${workspaceRoot}/src/main/java",
+          "${workspaceRoot}/src/test/java"
+        ]
+      }
+    },
+    "Java Spring Attach": {
+      "adapter": "mvn-spring-attach",
+      "remote-request": "launch",
+      "filetypes": [ "java" ],
+      "variables": {
+        "JavaHome": "${JAVA_HOME}",
+        "JavaOpt": "${JAVA_OPT}",
+        "AttachPort": "${attach_port:29000}"
+      },
+      "configuration": {
+        "request": "attach",
+        "hostName": "127.0.0.1",
+        "port": "${AttachPort}",
+        "cwd": "${workspaceRoot}",
+        "stepFilters": {
+          "skipClasses": [
+            "java.*",
+            "sun.*"
+          ]
+        },
+        "sourcePaths": [
+          "${workspaceRoot}/src/main/java",
+          "${workspaceRoot}/src/test/java"
+        ]
+      }
+    },
+    "Java 8 Spring Attach": {
+      "extends": "Java Spring Attach",
+      "variables": {
+        "JavaHome": "${JAVA_HOME_8}"
+      }
+    },
+    "Java 11 Spring Attach": {
+      "extends": "Java Spring Attach",
+      "variables": {
+        "JavaHome": "${JAVA_HOME_11}"
+      }
+    },
+    "Java 17 Spring Attach": {
+      "extends": "Java Spring Attach",
+      "variables": {
+        "JavaOpt": "--add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.lang.invoke=ALL-UNNAMED ${JAVA_OPT}",
+        "JavaHome": "${JAVA_HOME_17}"
+      }
+    },
+    "Java Unittest Attach": {
+      "extends": "Java Spring Attach",
+      "adapter": "mvn-unittest-attach"
+    },
+    "Java 8 Unittest Attach": {
+      "extends": "Java 8 Spring Attach",
+      "adapter": "mvn-unittest-attach"
+    },
+    "Java 11 Unittest Attach": {
+      "extends": "Java 11 Spring Attach",
+      "adapter": "mvn-unittest-attach"
+    },
+    "Java 17 Unittest Attach": {
+      "extends": "Java 17 Spring Attach",
+      "adapter": "mvn-unittest-attach"
+    }
+  },
+  "adapters": {
+    "java-debugger": {
+      "custom_handler": "vimspector.custom.java.JavaDebugAdapter",
+      "name": "java-attach",
+      "port": "${DAPPort}"
+    },
+    "mvn-spring-attach": {
+      "variables": {
+        "Profile": "${profile:local}"
+      },
+      "custom_handler": "vimspector.custom.java.JavaDebugAdapter",
+      "name": "mvn-spring-attach",
+      "port": "${DAPPort}",
+      "env": {
+        "JAVA_HOME": "${JavaHome}"
+      },
+      "launch": {
+        "remote": {
+          "runCommand": [
+            "mvn",
+            "-Dproguard.skip=true",
+            "-Dprofiles.active=${Profile}",
+            "-Dprofile.active=${Profile}",
+            "spring-boot:run",
+            "-Dspring-boot.run.jvmArguments=${JavaOpt} -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=${AttachPort}"
+          ]
+        },
+        "delay": "${Delay:7}"
+      }
+    },
+    "mvn-unittest-attach": {
+      "variables": {
+        "Profile": "${profile:local}"
+      },
+      "custom_handler": "vimspector.custom.java.JavaDebugAdapter",
+      "name": "mvn-unittest-attach",
+      "port": "${DAPPort}",
+      "env": {
+        "JAVA_HOME": "${JavaHome}"
+      },
+      "launch": {
+        "remote": {
+          "runCommand": [
+            "mvn",
+            "-DskipTests=false",
+            "-Dmaven.surefire.debug=\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${AttachPort}\"",
+            "-Dtest=${TestClasses:$fileBasenameNoExtension}",
+            "test"
+          ]
+        },
+        "delay": "${Delay:7}"
+      }
+    }
+  }
+}

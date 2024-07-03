@@ -199,11 +199,6 @@ set indentkeys-=<:>
 ino <C-C> <Esc>
 " }}}
 
-" KeyMap {{{
-nnoremap <F2> :set number! relativenumber!<CR>
-nnoremap <F6> :echo expand('%')<CR>
-" }}}
-
 " JumpToTheLineLastOpen {{{
 autocmd BufReadPost *
                 \ if line("'\"") > 0 && line("'\"") <= line("$") |
@@ -252,22 +247,17 @@ function! ToggleYcm()
         let g:ycm_auto_trigger = 0
     endif
 endfunction
-map <silent> <F7> :call ToggleYcm()<CR>
 " }}}
 
 " NERDTree {{{
 let g:NERDTreeWinSize = 20
-let NERDTreeWinPos=1
+let NERDTreeWinPos = "right"
 autocmd BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 " }}}
 
 " Tagbar {{{
 let g:tagbar_width = 20
 let g:tagbar_left = 1
-
-map <silent> <F8> :NtatbToggleAll<CR>
-map <silent> <F9> :NtatbToggleTagbar<CR>
-map <silent> <F10> :NtatbToggleNERDTree<CR>
 " }}}
 
 " Ultisnip {{{
@@ -382,12 +372,6 @@ autocmd FileType tex setlocal foldmethod=indent
 let g:tex_flavor='latex'
 "}}}
 
-" Quick open/close quickfix window {{{
-nnoremap <F3> :copen 10<CR>
-nnoremap <F4> :ccl<CR>
-" }}}
-"
-
 " Autoformat {{{
 function! CustomizedAutoformat()
     if &filetype == "java"
@@ -396,7 +380,6 @@ function! CustomizedAutoformat()
         Autoformat
     endif
 endfunction
-noremap <F5> :call CustomizedAutoformat()<CR>
 let g:formatdef_prettier = '"prettier --stdin-filepath ".expand("%:p").(&textwidth ? " --print-width ".&textwidth : "")." --tab-width=".shiftwidth()'
 let g:formatdef_scalafmt = "'scalafmt --stdin'"
 let g:formatters_scala = ['scalafmt']
@@ -496,33 +479,100 @@ inoremap <expr> <C-e> ScrollPopup(3) ? '' : '<C-e>'
 inoremap <expr> <C-y> ScrollPopup(-3) ? '' : '<C-y>'
 " }}}
 
+" init vimspector {{{
+function! CustomPickProcess( ... ) abort
+    let ps = 'ps aux'
+
+    let line_selected = fzf#run( {
+        \ 'source': ps,
+        \ 'options': '--header-lines=1  '
+        \          . '--prompt="Select Process: " '
+        \ ,
+        \
+        \ } )[ 0 ]
+    if empty( line_selected)
+        return 0
+    endif
+    let pid = split( line_selected )[ 0 ]
+    return str2nr( pid )
+endfunction
+
+let g:vimspector_custom_process_picker_func = 'CustomPickProcess'
+let g:vimspector_install_gadgets = [ 'debugpy', 'CodeLLDB', 'vscode-java-debug' ]
+let g:vimspector_base_dir=expand( '$HOME/.local/share/vimspector' )
+let s:jdt_ls_debugger_port = 0
+function! s:StartDebugging()
+    if &filetype == "java"
+        if s:jdt_ls_debugger_port <= 0
+            " Get the DAP port
+            let s:jdt_ls_debugger_port = youcompleteme#GetCommandResponse(
+                \ 'ExecuteCommand',
+                \ 'vscode.java.startDebugSession' )
+
+            if s:jdt_ls_debugger_port == ''
+                 echom "Unable to get DAP port - is JDT.LS initialized?"
+                 let s:jdt_ls_debugger_port = 0
+                 return
+             endif
+        endif
+
+        call DebuggerMapping()
+
+        " Start debugging with the DAP port
+        call vimspector#LaunchWithSettings( { 'DAPPort': s:jdt_ls_debugger_port } )
+    endif
+endfunction
+
+function! s:StopDebugging()
+    call EditorMapping()
+
+    VimspectorReset
+endfunction
+" }}}
+
+" Fx mappings {{{
+function! EditorMapping()
+    nnoremap <F2> :set number! relativenumber!<CR>
+    nnoremap <F3> :copen 10<CR>
+    nnoremap <Leader><F3> :ccl<CR>
+    nnoremap <F4> :echo expand('%')<CR>
+    nnoremap <F5> :call CustomizedAutoformat()<CR>
+    map <F6> :call ToggleYcm()<CR>
+    map <Leader><F6> :YcmCompleter RestartServer<CR>
+    nnoremap <F7> <Plug>VimspectorToggleBreakpoint
+    map <silent> <F8> :NtatbToggleAll<CR>
+    map <silent> <F9> :NtatbToggleTagbar<CR>
+    map <silent> <F10> :NtatbToggleNERDTree<CR>
+
+    nnoremap <silent> <buffer> <Leader><F5> :call <SID>StartDebugging()<CR>
+endfunction
+
+function! DebuggerMapping()
+    " Set shortcut according to Human
+    " Ctrl/Shift + Function Key doesn't work
+    nnoremap <F2> <Plug>VimspectorDisassemble
+    nnoremap <F3> <Plug>VimspectorRestart
+    nnoremap <F4> <Plug>VimspectorStop
+    nnoremap <F5> <Plug>VimspectorContinue
+    nnoremap <F6> <Plug>VimspectorPause
+    nnoremap <F7> <Plug>VimspectorToggleBreakpoint
+    nnoremap <Leader><F7> <Plug>VimspectorAddFunctionBreakpoint
+    nnoremap <F8> <Plug>VimspectorJumpToNextBreakpoint
+    nnoremap <Leader><F8> <Plug>VimspectorJumpToPreviousBreakpoint
+    nnoremap <F9> <Plug>VimspectorStepOver
+    nnoremap <Leader><F9> <Plug>VimspectorRunToCursor
+    nnoremap <F10> <Plug>VimspectorStepInto
+    nnoremap <F11> <Plug>VimspectorStepOut
+
+    nnoremap <silent> <buffer> <Leader><F5> :call <SID>StopDebugging()<CR>
+endfunction
+" }}}
+
+call EditorMapping()
+
 " Load host specific variables {{{
 let $CUSTOM_VARIABLE_VIMRC = $HOME . "/.vim/custom_variable_vimrc"
 if filereadable($CUSTOM_VARIABLE_VIMRC)
     source $CUSTOM_VARIABLE_VIMRC
 endif
-" }}}
-
-" init vimspector {{{
-"let g:vimspector_enable_mappings = 'HUMAN'
-let s:jdt_ls_debugger_port = 0
-function! s:StartDebugging()
-    if s:jdt_ls_debugger_port <= 0
-        " Get the DAP port
-        let s:jdt_ls_debugger_port = youcompleteme#GetCommandResponse(
-            \ 'ExecuteCommand',
-            \ 'vscode.java.startDebugSession' )
-
-        if s:jdt_ls_debugger_port == ''
-             echom "Unable to get DAP port - is JDT.LS initialized?"
-             let s:jdt_ls_debugger_port = 0
-             return
-         endif
-    endif
-
-    " Start debugging with the DAP port
-    call vimspector#LaunchWithSettings( { 'DAPPort': s:jdt_ls_debugger_port } )
-endfunction
-
-nnoremap <silent> <buffer> <Leader><F5> :call <SID>StartDebugging()<CR>
 " }}}
