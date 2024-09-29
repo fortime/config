@@ -1,3 +1,10 @@
+import = [
+    "~/.config/alacritty/themes/themes/marine_dark.toml"
+]
+
+[window]
+opacity = 0.99
+
 [keyboard]
 bindings = [
     { key = "v", mods = "Alt", action = "Paste" },
