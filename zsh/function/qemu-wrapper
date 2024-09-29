@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 # NOTES
 # 1. start an linux in current stdio: --no-gui --console, then add console=ttyS0 to kernel
@@ -44,6 +44,24 @@ check_vm_name() {
     fi
 }
 
+has_option() {
+    local target_option
+    target_option=$1
+    shift
+    for option in "$@"
+    do
+        if [ "$option" = "--" ]
+        then
+            break
+        fi
+        if [ "$option" = "$target_option" ]
+        then
+            return 0
+        fi
+    done
+    return 1
+}
+
 create() {
     local size
     size=$1
@@ -84,8 +102,23 @@ create_bridge() {
     fi
 }
 
+execute() {
+    if [ "$dry_run" != "true" ]
+    then
+        # NOTE. There should be no empty parameter in params, otherwise, it will exit with error "$qemu_system_cmd: : drive with bus=0, unit=0 (index=0) exists"
+        $sudo_cmd $qemu_system_cmd "${params[@]}"
+    else
+        echo $sudo_cmd $qemu_system_cmd "${params[@]}"
+    fi
+
+    if [ -n "$post_cmd" ]
+    then
+        $post_cmd
+    fi
+}
+
 start() {
-    local daemon_mode text_mode serial_port hostfwds volume_idx virtfs_params volumes volume found no_gui additional_params memory_param net_param bridge_net_param need_sudo cdrom_params param sudo_cmd arch kernel qemu_system_cmd smp_param
+    local daemon_mode text_mode serial_port hostfwds volume_idx virtfs_params volumes volume found no_gui additional_params memory_param net_param bridge_net_param need_sudo cdrom_params param sudo_cmd arch kernel qemu_system_cmd smp_param no_net disk_param post_cmd dry_run secure_boot ovmf_file ovmf_vars_file
 
     arch=$(uname -m)
     case "$arch" in
@@ -101,16 +134,16 @@ start() {
     esac
     kernel=$(uname -s)
 
+    # allow .env use dry_run
+    has_option "--dry-run" "$@" && dry_run=true
+
     if [ -f ".env" ]
     then
         source .env
     fi
 
-    if [ "$1" = "-d" ]
-    then
-        shift
-        daemon_mode="true"
-    fi
+    # don't let .env change dry_run
+    has_option "--dry-run" "$@" && dry_run=true
 
     if [ -n "$hostfwds" ]
     then
@@ -130,12 +163,21 @@ start() {
 
     found=false
     no_gui=false
-    additional_params=()
+    no_net="${no_net:-false}"
+    daemon_mode="${daemon_mode:-false}"
+    if [ -z "$additional_params" ]
+    then
+        additional_params=()
+    fi
     memory_param="${mem:-1024M}"
     net_param="-device virtio-net-pci,netdev=net0 -netdev user,id=net0,net=${subnet:-192.168.112.0/24},dhcpstart=${ip:-192.168.112.6}${hostfwds}"
     bridge_net_param=""
-    need_sudo=false
+    need_sudo=${need_sudo:-false}
     cdrom_params=()
+    if [ -z "$disk_param" ]
+    then
+        disk_param=(-drive file="$(pwd)/disk.qcow2",format=qcow2)
+    fi
     while [ -n "$1" ]
     do
         param="$1"
@@ -153,7 +195,7 @@ start() {
             case "$param" in
                 "--hostfwd")
                     shift
-                    if [ -n "$net_param" ]
+                    if [ -n "$net_param" -a "$no_net" != "true" ]
                     then
                         net_param="$net_param,hostfwd=$1"
                     fi
@@ -173,24 +215,32 @@ start() {
                     cdrom_params=(-drive "file=${1},if=none,media=cdrom,id=cd" -device virtio-scsi-pci -device scsi-cd,drive=cd)
                     ;;
                 "--net-shared")
-                    if [ "$kernel" = "Darwin" ]
+                    if [ "$no_net" != "true" -a "$kernel" = "Darwin" ]
                     then
                         bridge_net_param="-nic vmnet-shared,mac=$shared_mac"
                         need_sudo=true
-                    else
-                        create_bridge virbr0
+                    elif [ "$no_net" != "true" ]
+                    then
+                        if [ "$dry_run" != "true" ]
+                        then
+                            create_bridge virbr0
+                        fi
                         bridge_net_param="-nic bridge,br=virbr0,model=virtio-net-pci,mac=$shared_mac"
                     fi
                     ;;
                 "--net-bridged")
                     shift
-                    if [ "$kernel" = "Darwin" ]
+                    if [ "$no_net" != "true" -a "$kernel" = "Darwin" ]
                     then
                         bridge_net_param="-nic vmnet-bridged,mac=$bridged_mac,ifname=$1"
                         need_sudo=true
-                    else
-                        create_bridge virbr0
-                        sudo ip link set $1 master virbr0
+                    elif [ "$no_net" != "true" ]
+                    then
+                        if [ "$dry_run" != "true" ]
+                        then
+                            create_bridge virbr0
+                            sudo ip link set $1 master virbr0
+                        fi
                         bridge_net_param="-nic bridge,br=virbr0,model=virtio-net-pci,mac=$bridged_mac"
                     fi
                     # when --net-bridged is used, the vm can connect to the Internet, there is no need to use net_param.
@@ -199,36 +249,70 @@ start() {
                 "--legacy-qemu")
                     legacy_qemu=true
                     ;;
+                "--need-sudo")
+                    need_sudo=true
+                    ;;
+                "--no-net")
+                    no_net=true
+                    ;;
+                "-d")
+                    daemon_mode=true
+                    ;;
+                "--secure-boot")
+                    secure_boot=true
+                    ;;
                 *)
                     ;;
             esac
         fi
         shift
     done
+    if [ "$no_net" = "true" ]
+    then
+        net_param="-net none"
+        bridge_net_param=""
+    fi
     params=(-m $memory_param)
     if [ -n "$smp_param" ]
     then
         params=("${params[@]}" -smp "$smp_param")
     fi
-    ovmf_file=""
+    ovmf_vars_file="$(pwd)/ovmf_vars.fd"
     if [ "$arch" = "arm64" -a "$kernel" = "Darwin" ]
     then
-        params=("${params[@]}" -accel hvf -cpu host -M virt)
-        ovmf_file=/opt/homebrew/share/qemu/edk2-aarch64-code.fd
+        if [ "$secure_boot" = "true" ]
+        then
+            echo "Secure boot is not supported yet" >&2
+            exit 1
+        else
+            params=("${params[@]}" -accel hvf -cpu host -M virt)
+            ovmf_file=${QEMU_WRAPPER_OVMF_FILE:-/opt/homebrew/share/qemu/edk2-aarch64-code.fd}
+        fi
     fi
     if [ "$arch" = "x86_64" -a "$kernel" = "Linux" ]
     then
-        params=("${params[@]}" -accel kvm -cpu host)
-        ovmf_file=/usr/share/edk2/x64/OVMF_CODE.4m.fd
-    fi
-    if [ -n "$QEMU_WRAPPER_OVMF_FILE" ]
-    then
-        ovmf_file="$QEMU_WRAPPER_OVMF_FILE"
+        if [ "$secure_boot" = "true" ]
+        then
+            params=("${params[@]}" -M q35 -accel kvm -cpu host)
+            ovmf_file=${QEMU_WRAPPER_OVMF_SECBOOT_FILE:-/usr/share/edk2/x64/OVMF_CODE.secboot.4m.fd}
+            # secure boot variables is needed, otherwise, qemu will exit with error "KVM internal error. Suberror: 1"
+            ovmf_vars_file="$(pwd)/ovmf_vars.secboot.fd"
+            if [ ! -f "$ovmf_vars_file" ]
+            then
+                cp ${QEMU_WRAPPER_OVMF_SECBOOT_VARS_FILE:-/usr/share/edk2/x64/OVMF_VARS.4m.fd} "$ovmf_vars_file"
+            fi
+            [ -d tpm ] || mkdir tpm
+            swtpm socket --tpm2 --tpmstate dir="$(pwd)/tpm" --ctrl type=unixio,path="$(pwd)/tpm/tpm.sock" &
+            params=("${params[@]}" -chardev socket,id=chrtpm,path="$(pwd)/tpm/tpm.sock" -tpmdev emulator,id=tpm0,chardev=chrtpm -device tpm-tis,tpmdev=tpm0)
+        else
+            params=("${params[@]}" -accel kvm -cpu host)
+            ovmf_file=${QEMU_WRAPPER_OVMF_FILE:-/usr/share/edk2/x64/OVMF_CODE.4m.fd}
+        fi
     fi
     params=("${params[@]}" -drive file="$ovmf_file",if=pflash,format=raw,readonly=on)
-    params=("${params[@]}" -drive file=ovmf_vars.fd,if=pflash,format=raw)
+    params=("${params[@]}" -drive file="$ovmf_vars_file",if=pflash,format=raw)
     params=("${params[@]}" "${cdrom_params[@]}")
-    params=("${params[@]}" -drive file=disk.qcow2,format=qcow2)
+    params=("${params[@]}" "${disk_param[@]}")
     params=("${params[@]}" -device usb-ehci -device usb-kbd -device usb-mouse -device usb-tablet -usb)
     params=("${params[@]}" $(echo $net_param))
     params=("${params[@]}" $(echo $bridge_net_param))
@@ -275,9 +359,18 @@ start() {
             params=("${param[@]}" -device "$gui_device" -display default,show-cursor=on)
         fi
     fi
-    params=("${params[@]}" "${additional_params[@]}")
+    if [ -n "$additional_params" ]
+    then
+        params=("${params[@]}" "${additional_params[@]}")
+    fi
 
-    $sudo_cmd $qemu_system_cmd "${params[@]}"
+    if [ "$daemon_mode" != "true" ]
+    then
+        execute
+    else
+        execute 2>&1 >/dev/null &
+        disown
+    fi
 }
 
 set -e
@@ -319,20 +412,8 @@ case "$command" in
         fi
 
         cd "${workspace}/${vm_name}"
-        first=$1
-        daemon=false
-        if [ "$first" = "-d" ]
-        then
-            daemon=true
-        fi
 
-        if [ "$daemon" = "true" ]
-        then
-            start "$@" 2>&1 >/dev/null &
-            disown
-        else
-            start "$@"
-        fi
+        start "$@"
         ;;
     "cd")
         cd "${workspace}"
