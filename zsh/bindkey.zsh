@@ -24,6 +24,7 @@ bindkey "\e[H" beginning-of-line
 bindkey "\e[F" end-of-line
 bindkey "^A" beginning-of-line # Home
 bindkey "^E" end-of-line # End
-bindkey '^R' history-incremental-search-backward
+zle -N hgsg
+bindkey "^R" hgsg
 #bindkey "^R" history-search-backward
 #bindkey "^B" history-search-forward

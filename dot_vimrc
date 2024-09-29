@@ -229,6 +229,7 @@ let g:ycm_max_num_candidates = 0
 let g:ycm_max_num_candidates_to_detail = 10
 " show completion in comment
 let g:ycm_complete_in_comments = 1
+"let g:ycm_log_level = 'debug'
 
 nnoremap gdf :YcmCompleter GoToDefinition<CR>
 nnoremap gdc :YcmCompleter GoToDeclaration<CR>
@@ -239,6 +240,7 @@ nnoremap gfi :YcmCompleter FixIt<CR>
 nnoremap gdt :YcmCompleter GoToSymbol<Space>
 nnoremap grf :YcmCompleter OpenProject .
 nnoremap gll :YcmToggleLogs<CR>
+nnoremap gch <Plug>(YCMCallHierarchy)
 
 function! ToggleYcm()
     if g:ycm_auto_trigger == 0

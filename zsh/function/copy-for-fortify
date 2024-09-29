@@ -11,7 +11,7 @@ copy_for_fortify <dst-path> [src-path[:src-tree-ish]]" >&2
 run() {
     set -e
     local dst_path src
-    dst_path="$1"
+    dst_path=$(realpath "$1")
     [ -d "$dst_path" ] && rm -r "$dst_path"
     mkdir -p "$dst_path"
     while read src

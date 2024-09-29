@@ -1,0 +1,8 @@
+[keyboard]
+bindings = [
+    { key = "v", mods = "Alt", action = "Paste" },
+    { key = "c", mods = "Alt", action = "Copy" }
+]
+
+[selection]
+save_to_clipboard = true

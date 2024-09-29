@@ -87,6 +87,21 @@ gsg() {
     file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && echo "${file}" || return 1
 }
 
+hgsg() {
+    local cmd confirm
+    cmd="$(fc -lnr 1 | fzf-tmux -1 -0 --no-sort +m)"
+    if [ $? -eq 0 ]
+    then
+        if [ -n "$WIDGET" ]
+        then
+            BUFFER="$cmd"
+            CURSOR="$#BUFFER"
+        else
+            echo "$cmd"
+        fi
+    fi
+}
+
 _z() {
     local dir
     dir="$(fasd -Rdl "$1" | fzf-tmux -1 -0 --no-sort +m)" && cd "${dir}" || return 1
@@ -121,8 +136,4 @@ qemu-wrapper() {
     else
         zsh ~/zsh/function/qemu-wrapper "$@"
     fi
-}
-
-rclone-mount() {
-    zsh ~/zsh/function/rclone-mount "$@"
 }
