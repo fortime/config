@@ -141,7 +141,7 @@ hi LineNr guifg=#050505 ctermfg=grey
 "highlight TabLine ctermbg=3 term=underline cterm=bold,underline ctermfg=7 gui=underline guibg=DarkGrey
 "highlight CursorColumn ctermbg=4 ctermfg=5 term=reverse guibg=Grey40
 
-set guifont=WenQuanYi\ Micro\ Hei\ Mono\ 14
+set guifont=Hack\ 10
 
 set nocompatible
 set noeb
