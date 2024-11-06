@@ -23,17 +23,16 @@ cpdflatex() {
     (
         () {
             set -e
-            local work_path filename filename_without_suffix tmp_dir
+            local workpath filename filename_without_suffix tmp_dir
 
-            work_path=$(cd $(dirname $1); pwd)
-            #cd "$work_path"
+            workpath=$(cd $(dirname $1); pwd)
+            #cd "$workpath"
             filename=$(basename $1)
             filename_without_suffix="${filename%.*}"
-            tmp_dir="${work_path}/.${filename}_tex"
-            mkdir "$tmp_dir"
+            tmp_dir="${workpath}/.${filename}_target"
+            [ -d "$tmp_dir" ] || mkdir "$tmp_dir"
             xelatex -output-directory="$tmp_dir" -halt-on-error -interaction=nonstopmode "$1"
             mv "$tmp_dir/${filename_without_suffix}.pdf" .
-            rm -r "$tmp_dir"
         } "$@"
     )
 }
