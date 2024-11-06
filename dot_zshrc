@@ -1,7 +1,7 @@
 # Lines configured by zsh-newuser-install
 HISTFILE=~/.histfile
-HISTSIZE=8192
-SAVEHIST=8192
+HISTSIZE=65535
+SAVEHIST=65535
 # End of lines configured by zsh-newuser-install
 VBOX_USB=usbfs
 
