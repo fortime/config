@@ -5,6 +5,7 @@ import = [
 
 [font]
 size = 10
+normal = { family = "NotoSansM Nerd Font Mono", style = "Regular" }
 
 [window]
 opacity = 0.99
