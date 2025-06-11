@@ -43,8 +43,13 @@ source ~/zsh/bindkey.zsh
 source ~/zsh/include.zsh
 if [ -d ~/zsh/include ]
 then
-    for rc in ~/zsh/include/*.zsh
-    do
-        source "$rc"
-    done
+    res=$(find ~/zsh/include/ -maxdepth 1 -mindepth 1 -name "*.zsh")
+    if [ -n "$res" ]
+    then
+        for rc in ~/zsh/include/*.zsh
+        do
+            source "$rc"
+        done
+    fi
+    unset res
 fi
