@@ -37,6 +37,7 @@ alias ..='cd ..'
 #alias irssi="irssi -c irc.freenode.net -n yyz"
 alias mem="free -m"
 alias top=htop
+alias proxychains="proxychains -q"
 
 # command L equivalent to command |less
 #alias -g L='|less'

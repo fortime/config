@@ -81,6 +81,11 @@ vgsg() {
     file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && vim "${file}" || return 1
 }
 
+nvgsg() {
+    local file
+    file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && nvim "${file}" || return 1
+}
+
 gsg() {
     local file
     file="$(git ls-files -omc --directory | fzf-tmux -1 -0 --no-sort +m --preview 'bat --color always {}')" && echo "${file}" || return 1
