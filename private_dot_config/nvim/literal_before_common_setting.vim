@@ -96,6 +96,8 @@ lua <<EOF
                 end
             elseif sub_command == 'Info' then
                 vim.cmd('LspInfo')
+            elseif sub_command == 'ShowDiags' then
+                vim.diagnostic.setloclist()
             end
         end,
         {

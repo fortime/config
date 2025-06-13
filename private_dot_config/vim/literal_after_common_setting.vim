@@ -1,7 +1,3 @@
-" Fixing <Leader>l conflicts between listtoggle and ferret {{{
-let g:FerretMap = 0
-" }}}
-
 " editorconfig {{{
 " make editorconfig work with fugitive and skip any remote files over ssh
 let g:EditorConfig_exclude_patterns = ['fugitive://.*', 'scp://.*']
@@ -22,7 +18,7 @@ let g:ycm_key_list_stop_completion = []
 let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
 "let g:ycm_goto_buffer_command = 'horizontal-split'
-let g:ycm_goto_buffer_command = 'split-or-existing-window'
+let g:ycm_goto_buffer_command = 'same-buffer'
 " reuse workspace
 let g:ycm_java_jdtls_use_clean_workspace = 0
 " unlimited candidate
@@ -31,10 +27,11 @@ let g:ycm_max_num_candidates_to_detail = 10
 " show completion in comment
 let g:ycm_complete_in_comments = 1
 "let g:ycm_log_level = 'debug'
+" use YcmDiags to populate and open the list
+let g:ycm_always_populate_location_list = 0
 
 nnoremap grf :YcmCompleter OpenProject .<CR>
 nnoremap gll :YcmToggleLogs<CR>
-nnoremap gch <Plug>(YCMCallHierarchy)
 
 function! ToggleYcm()
     if g:ycm_auto_trigger == 0
@@ -62,7 +59,7 @@ function! LspHelper(...)
     elseif l:sub_command == 'FixIt'
         YcmCompleter FixIt
     elseif l:sub_command == 'CallHierarchy'
-        execute "<Plug>(YCMCallHierarchy)"
+        execute "normal \<Plug>(YCMCallHierarchy)"
     elseif l:sub_command == 'Rename'
         YcmCompleter RefactorRename a:000[1]
     elseif l:sub_command == 'Toggle'
@@ -75,6 +72,8 @@ function! LspHelper(...)
         YcmCompleter RestartServer
     elseif l:sub_command == 'Info'
         YcmDebugInfo
+    elseif l:sub_command == 'ShowDiags'
+        YcmDiags
     endif
 endfunction
 command -nargs=+ -complete=customlist,LspHelperSubCommands LspHelper :call LspHelper(<f-args>)
@@ -87,16 +86,6 @@ function! CustomizedAutoformat()
     endif
 endfunction
 command CustomizedAutoformat :call CustomizedAutoformat()
-" }}}
-
-" ALE {{{
-" Only run linters named in ale_linters settings.
-let g:ale_linters_explicit = 1
-" Pylint for python 3 by default
-let g:ale_python_pylint_executable = 'python3'
-"let g:ale_linters = {'python': ['flake8', 'pylint']}
-let g:ale_linters = {'python': ['flake8']}
-let g:ale_python_flake8_options = '--max-line-length 88'
 " }}}
 
 " Ultisnip {{{

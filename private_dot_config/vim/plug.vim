@@ -14,12 +14,6 @@ Plug 'othree/yajs.vim'
 Plug 'othree/es.next.syntax.vim'
 " For cpp enhanced syntax highlight
 Plug 'octol/vim-cpp-enhanced-highlight'
-" For ycm listing diagnostic message
-Plug 'Valloric/ListToggle'
-" For syntax diagnosting
-"Plug 'scrooloose/syntastic'
-" For async syntax diagnosting
-Plug 'w0rp/ale'
 " For systemd syntax
 Plug 'Matt-Stevens/vim-systemd-syntax'
 " For colorscheme

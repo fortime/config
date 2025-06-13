@@ -59,3 +59,5 @@ endfunction
 
 " switch to the default im when leaving buffer
 Plug 'rlue/vim-barbaric', Cond(FcitxRemoteWontPanic())
+" windsurf
+Plug 'Exafunction/windsurf.vim'
