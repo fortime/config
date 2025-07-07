@@ -11,6 +11,13 @@ lua <<EOF
 
     local cmp = require('cmp')
     local editorconfig = require('editorconfig')
+    local codecompanion = require('codecompanion')
+    local render_markdown = require('render-markdown')
+
+    -- config render-markdown
+    render_markdown.setup({
+        file_types = { 'markdown', 'codecompanion' },
+    })
 
     -- config cmp
     cmp.setup({
@@ -29,11 +36,12 @@ lua <<EOF
             ['<CR>'] = cmp.mapping.confirm({ select = true }),
         }),
         sources = cmp.config.sources({
-            { name = 'nvim_lsp', keyword_length = 3 },
+            { name = 'nvim_lsp', keyword_length = 2 },
             { name = 'ultisnips' },
             { name = 'nvim_lsp_signature_help' },
             { name = 'path', keyword_length = 3 },
             { name = 'buffer', keyword_length = 3 },
+            { name = 'render-markdown' },
         }),
         formatting = {
             format = function(entry, vim_item)
@@ -87,12 +95,10 @@ lua <<EOF
             elseif sub_command == 'Restart' then
                 local bufnr = vim.api.nvim_get_current_buf()
                 local clients = vim.lsp.get_clients({ bufnr = bufnr })
-                local client_names = {}
                 for i, client in ipairs(clients) do
-                    client_names[i] = client.name
-                end
-                if #client_names > 0 then
-                    vim.cmd.LspRestart(client_names)
+                    if not (vim.lsp.config[client.name] == nil) then
+                        vim.cmd.LspRestart({ args = { client.name } })
+                    end
                 end
             elseif sub_command == 'Info' then
                 vim.cmd('LspInfo')
@@ -119,6 +125,7 @@ lua <<EOF
         { desc = 'Call lsp format if it is supported' })
 
     local group = vim.api.nvim_create_augroup("my.lsp", { clear = true })
+
     -- set lsp capabilities
     vim.api.nvim_create_autocmd('LspAttach', {
         group = group,
@@ -129,6 +136,7 @@ lua <<EOF
             end
         end
     })
+
     -- show diagnostic on hold
     vim.api.nvim_create_autocmd('CursorHold', {
         group = group,
@@ -192,4 +200,10 @@ tnoremap <C-W>H <C-\><C-N><C-W>H
 tnoremap <C-W>J <C-\><C-N><C-W>J
 tnoremap <C-W>K <C-\><C-N><C-W>K
 tnoremap <C-W>L <C-\><C-N><C-W>L
+tnoremap <C-W>= <C-\><C-N><C-W>=
+" }}}
+
+" copilot {{{
+" Disable by default
+let g:copilot_enabled = v:false
 " }}}

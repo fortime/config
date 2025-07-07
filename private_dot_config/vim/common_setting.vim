@@ -363,18 +363,3 @@ endfunction
 " }}}
 
 call EditorMapping()
-
-" windsurf {{{
-" disable default mapping
-let g:codeium_disable_bindings = 1
-" disable by default
-let g:codeium_enabled = v:false
-let g:codeium_manual = v:true
-
-imap <script><silent><nowait><expr> <C-D><space> codeium#Accept()
-imap <script><silent><nowait><expr> <C-D>w codeium#AcceptNextWord()
-imap <script><silent><nowait><expr> <C-D>l codeium#AcceptNextLine()
-imap <C-D>n <Cmd>call codeium#CycleOrComplete()<CR>
-imap <C-D>p <Cmd>call codeium#CycleCompletions(-1)<CR>
-imap <C-D>x <Cmd>call codeium#Clear()<CR>
-" }}}

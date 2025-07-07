@@ -13,3 +13,12 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
 " }}}
+
+" codecompanion and its dependencies {{{
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'MeanderingProgrammer/render-markdown.nvim'
+Plug 'olimorris/codecompanion.nvim'
+" }}}
+
+Plug 'github/copilot.vim'
