@@ -5,4 +5,5 @@ Wants=network-online.target
 
 [Service]
 ExecStart=/home/fortime/zsh/function/rclone-mount %i 'secret-tool lookup rclone-passwd-type main'
+ExecStop=/home/fortime/zsh/function/rclone-mount -u %i
 Restart=on-failure

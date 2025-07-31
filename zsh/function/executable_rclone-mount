@@ -1,12 +1,129 @@
 #! /bin/bash
 
+kill_if_exist() {
+    local pid force info
+    pid=$1
+    force=$2
+    info=$(ps -q "$pid" -h || true)
+    echo "Prepare to kill ${pid}, force[${force}], process: ${info}"
+    if [ -n "$info" ]
+    then
+        if [ "$force" == "true" ]
+        then
+            # allow failure
+            kill -9 "$pid" || true
+        else
+            # allow failure
+            kill "$pid" || true
+        fi
+    fi
+}
+
 uid=$(id -u)
 storage=$1
 shift
-password_command=$1
-shift
 
-mount_point="/run/user/$(id -u)/app/rclone/$storage"
+unmount=""
+if [ "$storage" == "-u" ]
+then
+    unmount=true
+    storage=$1
+    shift
+else
+    password_command=$1
+    shift
+fi
+
+case "$storage" in
+  .*)
+    echo "$storage shouldn't start with a dot." >&2
+    exit 1
+    ;;
+esac
+
+mount_point="/run/user/${uid}/app/rclone/${storage}"
+mount_point_mark="/run/user/${uid}/app/rclone/.${storage}"
 [ -d "$mount_point" ] || mkdir -p "$mount_point"
 
-exec rclone mount --vfs-cache-mode full "${storage}:" "$mount_point" --password-command "$password_command" "$@"
+if [ -z "$unmount" ]
+then
+    set -e
+    child_pid=""
+    start="true"
+    # creating a file indicates this mount point is mounting
+    while [ 1 == 1 ]
+    do
+        started=false
+        if [ "$start" == "true" ]
+        then
+            rclone mount --vfs-cache-mode full "${storage}:" "$mount_point" --password-command "$password_command" "$@" &
+            child_pid=$!
+            echo -n "$child_pid" > "$mount_point_mark"
+            # sleep a moment then check whether the process still lives
+            sleep 5
+            info=$(ps -q "$child_pid" -h || true)
+            if [ -n "$info" ]
+            then
+                started=true
+            fi
+        elif [ "$start" == "false" ]
+        then
+            if [ -n "$child_pid" ]
+            then
+                # unmount then kill, allow failure
+                fusermount3 -uq "$mount_point" || true
+
+                kill_if_exist "$child_pid"
+                info=$(ps -q "$child_pid" -h || true)
+                if [ -n "$info" ]
+                then
+                    # sleep a moment, if the process exists, kill -9
+                    sleep 5
+                    kill_if_exist "$child_pid" true
+                fi
+            fi
+            child_pid=""
+        fi
+        if [ "$started" == true ]
+        then
+            # wait for sleep signal, sleep without timeout to avoid missing signal
+            sleep_signal=$(busctl --system wait /org/freedesktop/login1 org.freedesktop.login1.Manager PrepareForSleep)
+        else
+            # wait for sleep signal, sleep a moment then check whether rclone should be run
+            sleep_signal=$(busctl --timeout=300 --system wait /org/freedesktop/login1 org.freedesktop.login1.Manager PrepareForSleep)
+        fi
+        echo "receive sleep signal: ${sleep_signal}"
+        case "$sleep_signal" in
+            *true)
+                start=false
+                ;;
+            *false)
+                start=true
+                # sleep a moment after resumed longer then HibernateDelaySec, because systemd doesn't send PrepareForSleep(false) after resumption from hibernation
+                sleep 900
+                ;;
+            "")
+                start=unknown
+                if [ -n "$child_pid" ]
+                then
+                    info=$(ps -q "$child_pid" -h || true)
+                    if [ -z "$info" ]
+                    then
+                        # child is not running, start it again
+                        start=true
+                    fi
+                else
+                    # child is not running, start it again
+                    start=true
+                fi
+                ;;
+            *)
+                echo "unknown sleep signal" >&2
+                start=unknown
+                ;;
+        esac
+    done
+else
+    fusermount3 -u "$mount_point"
+    rm "$mount_point_mark"
+fi
