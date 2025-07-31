@@ -95,11 +95,29 @@ lua <<EOF
             elseif sub_command == 'Restart' then
                 local bufnr = vim.api.nvim_get_current_buf()
                 local clients = vim.lsp.get_clients({ bufnr = bufnr })
-                for i, client in ipairs(clients) do
+                local client_names = {}
+                for _, client in ipairs(clients) do
                     if not (vim.lsp.config[client.name] == nil) then
+                        client_names[client.name] = true
                         vim.cmd.LspRestart({ args = { client.name } })
                     end
                 end
+                -- Make sure all lsp clients are started
+                vim.cmd.doautocmd('nvim.lsp.enable FileType')
+
+                local timer = assert(vim.uv.new_timer())
+                timer:start(500, 0, function()
+                    local new_clients = vim.lsp.get_clients({ bufnr = bufnr })
+                    for _, client in ipairs(new_clients) do
+                        if not (vim.lsp.config[client.name] == nil) and not client_names[client.name] then
+                            client_names[client.name] = true
+                            -- trigger attaching to all related buffers
+                            vim.schedule_wrap(function(x)
+                                vim.cmd.LspStart({ args = { x } })
+                            end)(client.name)
+                        end
+                    end
+                end)
             elseif sub_command == 'Info' then
                 vim.cmd('LspInfo')
             elseif sub_command == 'ShowDiags' then
