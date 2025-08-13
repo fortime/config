@@ -13,11 +13,67 @@ lua <<EOF
     local editorconfig = require('editorconfig')
     local codecompanion = require('codecompanion')
     local render_markdown = require('render-markdown')
+    local cmp_nvim_ultisnips_mappings = require('cmp_nvim_ultisnips.mappings')
+    local copilot = require('copilot')
+    local copilot_cmp = require('copilot_cmp')
+    local copilot_cmp_comparators = require('copilot_cmp.comparators')
+    local cmp_lsp_rs_comparators = require('cmp_lsp_rs.comparators')
+
+    local t = function(str)
+        return vim.api.nvim_replace_termcodes(str, true, true, true)
+    end
 
     -- config render-markdown
     render_markdown.setup({
         file_types = { 'markdown', 'codecompanion' },
     })
+
+    copilot_cmp.setup()
+
+    -- config copilot
+    copilot.setup({
+        suggestion = { enabled = false },
+        panel = { enabled = false },
+        should_attach = function(_, bufname)
+            local abspath = vim.fs.abspath(bufname)
+            local filename = vim.fs.basename(abspath)
+            -- ignore all file starts with .
+            if string.match(filename, '^%..*') then
+                return false
+            elseif string.match(abspath, '^/etc/.*') then
+                return false
+            elseif string.match(abspath, '^/run/.*') then
+                return false
+            elseif string.match(abspath, '^/var/run/.*') then
+                return false
+            end
+
+            return true
+        end,
+        server_opts_overrides = {
+            settings = {
+                telemetry = {
+                    telemetryLevel = "off",
+                },
+            },
+        },
+    })
+
+    local default_cmp_comparators = {
+        -- copilot_cmp_comparators.prioritize,
+
+        -- Below is the default comparitor list and order for nvim-cmp
+        cmp.config.compare.offset,
+        -- cmp.config.compare.scopes, --this is commented in nvim-cmp too
+        cmp.config.compare.exact,
+        cmp.config.compare.score,
+        cmp.config.compare.recently_used,
+        -- cmp.config.compare.locality,
+        -- cmp.config.compare.kind,
+        cmp.config.compare.sort_text,
+        cmp.config.compare.length,
+        -- cmp.config.compare.order,
+    }
 
     -- config cmp
     cmp.setup({
@@ -33,12 +89,48 @@ lua <<EOF
         mapping = cmp.mapping.preset.insert({
             ['<C-e>'] = cmp.mapping.scroll_docs(3),
             ['<C-y>'] = cmp.mapping.scroll_docs(-3),
-            ['<CR>'] = cmp.mapping.confirm({ select = true }),
+            ['<CR>'] = cmp.mapping.confirm({ select = true, behavior = cmp.ConfirmBehavior.Insert }),
+            ['<C-n>'] = {
+                i = function(fallback)
+                    if cmp.visible() then
+                        cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                    else
+                        cmp.complete()
+                    end
+                end,
+            },
+            ['<C-p>'] = {
+                i = function(fallback)
+                    if cmp.visible() then
+                        cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+                    else
+                        cmp.complete()
+                    end
+                end,
+            },
+            ["<Tab>"] = {
+                i = function(fallback)
+                    cmp_nvim_ultisnips_mappings.expand_or_jump_forwards(fallback)
+                end,
+            },
+            ["<S-Tab>"] = {
+                i = function(fallback)
+                    cmp_nvim_ultisnips_mappings.jump_backwards(fallback)
+                end,
+            },
+            -- A workaround to trigger copilot completion manually
+            ["<M-n>"] = {
+                i = function(fallback)
+                    cmp.complete()
+                end,
+            },
         }),
         sources = cmp.config.sources({
             { name = 'nvim_lsp', keyword_length = 2 },
-            { name = 'ultisnips' },
             { name = 'nvim_lsp_signature_help' },
+            -- if it is too short, other sources won't be shown
+            { name = 'copilot', keyword_length = 2 },
+            { name = 'ultisnips', keyword_length = 1 },
             { name = 'path', keyword_length = 3 },
             { name = 'buffer', keyword_length = 3 },
             { name = 'render-markdown' },
@@ -55,6 +147,21 @@ lua <<EOF
                 end
                 return vim_item
             end,
+        },
+        sorting = {
+            priority_weight = 2,
+            comparators = default_cmp_comparators,
+        }
+    })
+
+    local rust_cmp_comparators = {
+        cmp_lsp_rs_comparators.inscope_inherent_import,
+        cmp_lsp_rs_comparators.sort_by_label_but_underscore_last,
+    }
+    cmp.setup.filetype({ "rust" }, {
+        sorting = {
+            priority_weight = 2,
+            comparators = vim.list_extend(rust_cmp_comparators, default_cmp_comparators),
         },
     })
 
@@ -219,9 +326,4 @@ tnoremap <C-W>J <C-\><C-N><C-W>J
 tnoremap <C-W>K <C-\><C-N><C-W>K
 tnoremap <C-W>L <C-\><C-N><C-W>L
 tnoremap <C-W>= <C-\><C-N><C-W>=
-" }}}
-
-" copilot {{{
-" Disable by default
-let g:copilot_enabled = v:false
 " }}}
