@@ -56,6 +56,8 @@ then
         started=false
         if [ "$start" == "true" ]
         then
+            # make sure umounted
+            fusermount3 -uq "$mount_point" || true
             rclone mount --vfs-cache-mode full "${storage}:" "$mount_point" --password-command "$password_command" "$@" &
             child_pid=$!
             echo -n "$child_pid" > "$mount_point_mark"
